@@ -35,8 +35,8 @@ async def login(data: LoginSchema):
         detail="Credenciales incorrectas, verifica tu acceso."
     )
 
-#client = Groq(api_key=("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"))
-client = Groq(api_key=os.getenv("AQUI_VA_TU_API_KEY_DE_GROQ"))
+client = Groq(api_key=("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"))
+#client = Groq(api_key=os.getenv("AQUI_VA_TU_API_KEY_DE_GROQ"))
 
 class ChatRequest(BaseModel):
     prompt: str
