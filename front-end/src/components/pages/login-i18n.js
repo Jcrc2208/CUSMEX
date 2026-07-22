@@ -16,7 +16,6 @@ const PLATFORM_MODULES = [
   { id: 'participantes', icon: Users },
   { id: 'networking', icon: Handshake },
   { id: 'agenda', icon: CalendarDays },
-  { id: 'asistente-ia', icon: Sparkles },
   { id: 'comites', icon: Landmark },
   { id: 'notificaciones', icon: Bell },
   { id: 'administracion', icon: Settings, adminOnly: true },
@@ -110,11 +109,6 @@ export const COPY = {
         'Reuniones, salas y ponentes',
         'Calendario integrado',
       ],
-      'asistente-ia': [
-        'Chat con IA',
-        'Recomendaciones y preparación de reuniones',
-        'Resúmenes, traducción y follow-up',
-      ],
       comites: [
         'Comités y miembros',
         'Documentos y votaciones',
@@ -136,7 +130,6 @@ export const COPY = {
       participantes: 'Participantes',
       networking: 'Networking',
       agenda: 'Agenda',
-      'asistente-ia': 'Asistente IA',
       comites: 'Comités',
       notificaciones: 'Notificaciones',
       administracion: 'Administración',
@@ -147,7 +140,6 @@ export const COPY = {
       participantes: 'Participantes',
       networking: 'Networking',
       agenda: 'Agenda',
-      'asistente-ia': 'Asistente IA',
       comites: 'Comités',
       notificaciones: 'Notificaciones',
       administracion: 'Administración',
@@ -179,7 +171,6 @@ export const COPY = {
         items: [
           { id: 'agenda', label: 'Ver agenda del evento', hint: 'Sesiones, salas y ponentes' },
           { id: 'networking', label: 'Explorar matchmaking', hint: 'Empresas y solicitudes' },
-          { id: 'asistente-ia', label: 'Abrir Asistente IA', hint: 'Preparación de reuniones' },
           { id: 'notificaciones', label: 'Centro de notificaciones', hint: 'Anuncios y recordatorios' },
         ],
       },
@@ -395,12 +386,6 @@ export const COPY = {
           'Espacio personalizado con agenda, reuniones, documentos, comités, notificaciones, IA, votaciones, transcripciones y recomendaciones.',
       },
       {
-        id: 'asistente-ia',
-        title: 'Asistente de IA Personalizado',
-        description:
-          'Asistente adaptado al rol, permisos, agenda e idioma: responde dudas, prepara reuniones, traduce, resume y genera follow-up.',
-      },
-      {
         id: 'agenda',
         title: 'Sistema de Agenda',
         description:
@@ -472,11 +457,6 @@ export const COPY = {
         'Meetings, rooms, and speakers',
         'Integrated calendar',
       ],
-      'asistente-ia': [
-        'AI chat',
-        'Recommendations and meeting prep',
-        'Summaries, translation, and follow-up',
-      ],
       comites: ['Committees and members', 'Documents and voting', 'Responsibilities'],
       notificaciones: ['Messages and announcements', 'Reminders', 'Official communications'],
       administracion: [
@@ -490,7 +470,6 @@ export const COPY = {
       participantes: 'Participants',
       networking: 'Networking',
       agenda: 'Agenda',
-      'asistente-ia': 'AI Assistant',
       comites: 'Committees',
       notificaciones: 'Notifications',
       administracion: 'Administration',
@@ -501,7 +480,6 @@ export const COPY = {
       participantes: 'Participants',
       networking: 'Networking',
       agenda: 'Agenda',
-      'asistente-ia': 'AI Assistant',
       comites: 'Committees',
       notificaciones: 'Notifications',
       administracion: 'Administration',
@@ -533,7 +511,6 @@ export const COPY = {
         items: [
           { id: 'agenda', label: 'View event agenda', hint: 'Sessions, rooms, and speakers' },
           { id: 'networking', label: 'Explore matchmaking', hint: 'Companies and requests' },
-          { id: 'asistente-ia', label: 'Open AI Assistant', hint: 'Meeting preparation' },
           { id: 'notificaciones', label: 'Notification center', hint: 'Announcements and reminders' },
         ],
       },
@@ -749,12 +726,6 @@ export const COPY = {
           'A personalized space with agenda, meetings, documents, committees, notifications, AI, voting, transcripts, and recommendations.',
       },
       {
-        id: 'asistente-ia',
-        title: 'Personalized AI Assistant',
-        description:
-          'An assistant tailored to role, permissions, agenda, and language: answers questions, prepares meetings, translates, summarizes, and creates follow-up.',
-      },
-      {
         id: 'agenda',
         title: 'Agenda System',
         description:
@@ -826,11 +797,6 @@ export const COPY = {
         'Réunions, salles et intervenants',
         'Calendrier intégré',
       ],
-      'asistente-ia': [
-        'Chat IA',
-        'Recommandations et préparation de réunions',
-        'Résumés, traduction et suivi',
-      ],
       comites: ['Comités et membres', 'Documents et votes', 'Responsabilités'],
       notificaciones: ['Messages et annonces', 'Rappels', 'Communications officielles'],
       administracion: [
@@ -844,7 +810,6 @@ export const COPY = {
       participantes: 'Participants',
       networking: 'Networking',
       agenda: 'Agenda',
-      'asistente-ia': 'Assistant IA',
       comites: 'Comités',
       notificaciones: 'Notifications',
       administracion: 'Administration',
@@ -855,7 +820,6 @@ export const COPY = {
       participantes: 'Participants',
       networking: 'Networking',
       agenda: 'Agenda',
-      'asistente-ia': 'Assistant IA',
       comites: 'Comités',
       notificaciones: 'Notifications',
       administracion: 'Administration',
@@ -887,7 +851,6 @@ export const COPY = {
         items: [
           { id: 'agenda', label: 'Voir l’agenda', hint: 'Sessions, salles et intervenants' },
           { id: 'networking', label: 'Explorer le matchmaking', hint: 'Entreprises et demandes' },
-          { id: 'asistente-ia', label: 'Ouvrir l’Assistant IA', hint: 'Préparation des réunions' },
           { id: 'notificaciones', label: 'Centre de notifications', hint: 'Annonces et rappels' },
         ],
       },
@@ -929,210 +892,9 @@ export const COPY = {
             title: 'Fenêtre matchmaking ouverte jusqu’à 18h00',
             excerpt: 'Envoyez vos demandes de réunion avant la fin de la journée.',
           },
-          {
-            id: 'n3',
-            tag: 'Communiqué',
-            title: 'Nouveau module de traduction en temps réel',
-            excerpt: 'Disponible en anglais, espagnol et français pour certaines sessions.',
-          },
         ],
       },
     },
-    agenda: {
-      badge: 'Agenda',
-      title: 'Agenda',
-      subtitle: '5 sessions · 3 jours · Oakland Edition',
-      liveLabel: 'En direct',
-      daysLabel: 'Jours de l’événement',
-      searchPlaceholder: 'Rechercher…',
-      resultsLabel: 'résultats',
-      standsLabel: 'Salles / Stands',
-      standsPendingHint: 'Filtre par stand — bientôt disponible',
-      themesFilter: 'Filtre thématique',
-      emptyDay: 'Aucune session trouvée pour cette journée avec les filtres actuels.',
-      backToAgenda: 'Retour à l’agenda',
-      sessionNotFound: 'Session introuvable.',
-      aboutTitle: 'À propos de cette session',
-      speakerTitle: 'Intervenant',
-      myAgenda: 'Mon agenda',
-      addToAgenda: 'Ajouter à mon agenda',
-      removeFromAgenda: 'Retirer de mon agenda',
-      addGoogleCalendar: 'Ajouter à Google Calendar',
-      share: 'Partager',
-      categories: {
-        keynote: 'Keynote',
-        workshop: 'Atelier',
-        conference: 'Conférence',
-        panel: 'Panneau',
-      },
-      tracks: {
-        institutional: 'Institutionnel',
-        trade: 'Commerce',
-        networking: 'Networking',
-        committees: 'Comités',
-        integration: 'Intégration régionale',
-      },
-      formats: {
-        inPerson: 'Présentiel',
-        hybrid: 'Hybride',
-        virtual: 'Virtuel',
-      },
-      languages: {
-        spanish: 'Espagnol',
-        english: 'Anglais',
-        french: 'Français',
-        bilingual: 'Espagnol · Anglais',
-      },
-      durations: {
-        '1h': '1h',
-        '1h30': '1h 30m',
-      },
-      speakerRoles: {
-        speaker: 'intervenant',
-        moderator: 'modératrice',
-        panel: 'panéliste',
-      },
-      labels: {
-        weekdays: {
-          tuesday: 'Mardi',
-          wednesday: 'Mercredi',
-          thursday: 'Jeudi',
-        },
-        dates: {
-          day1: 'mardi 18 mars 2026',
-          day2: 'mercredi 19 mars 2026',
-          day3: 'jeudi 20 mars 2026',
-        },
-        stands: {
-          mainAuditorium: 'Auditorium principal',
-          pacificRoom: 'Salle Pacifique',
-          networkingHub: 'Hub de Networking',
-          committeeA: 'Table Comité A',
-          committeeB: 'Table Comité B',
-          bilateralSuites: 'Suites bilatérales',
-        },
-        zones: {
-          mainAuditorium: 'Auditorium principal',
-          pacificRoom: 'Salle Pacifique',
-          networkingHub: 'Hub de Networking · Niveau 2',
-          committeeA: 'Table Comité du Commerce',
-          bilateralSuites: 'Suites bilatérales · Aile Est',
-        },
-      },
-      sessions: {
-        openingKeynoteTitle: 'Ouverture institutionnelle du NATP Oakland Edition',
-        openingKeynoteAbout:
-          'Session plénière de bienvenue avec les autorités, la vision du parlement et les priorités de l’agenda commercial trilatéral pour l’édition Oakland.',
-        supplyChainTitle: 'Chaîne d’approvisionnement Mexique–Canada : table technique',
-        supplyChainAbout:
-          'Atelier pratique sur le nearshoring, la logistique transfrontalière et les opportunités d’approvisionnement avec des cas du secteur manufacturier et de l’énergie.',
-        matchmakingTitle: 'Business Matchmaking : maximiser vos réunions',
-        matchmakingAbout:
-          'Orientation pour les participants d’affaires : profils, demandes, salles de réunion et bonnes pratiques pour le hub de networking.',
-        tradePanelTitle: 'Panneau du Comité du Commerce : accords en cours',
-        tradePanelAbout:
-          'Dialogue entre délégations sur les tables de travail, les documents en cours de révision et les prochaines étapes de vote institutionnel.',
-        integrationLabTitle: 'Laboratoire d’intégration régionale',
-        integrationLabAbout:
-          'Session participative pour aligner les projets conjoints, la cartographie des parties prenantes et le suivi post-parlement entre les tables Mexique et Canada.',
-      },
-    },
-    roles: {
-      gobierno: {
-        title: 'Accès Gouvernement',
-        description:
-          'Pour les représentants des administrations publiques et des organismes publics.',
-        placeholder: 'gouvernement@natp.org',
-      },
-      empresas: {
-        title: 'Accès Entreprises',
-        description:
-          'Connectez-vous pour coordonner le networking, les réunions et votre présence à l’Assemblée d’Oakland.',
-        placeholder: 'entreprise@domaine.com',
-      },
-      admin: {
-        title: 'Administrateur',
-        description: 'Gérez les comptes, les rôles institutionnels, l’audit et la configuration générale de Nexus.',
-        placeholder: 'admin@natp.org',
-      }
-    },
-    admin: {
-      title: 'Panneau d\'Administration',
-      description: 'Gérez les utilisateurs, les rôles, les sponsors et la configuration générale.',
-      tabs: {
-        users: 'Utilisateurs et Rôles',
-        config: 'Configuration',
-        audit: 'Audit'
-      },
-      usersManager: {
-        searchPlaceholder: 'Rechercher par nom, e-mail ou rôle...',
-        addUser: 'Ajouter un Utilisateur',
-        cardTitle: 'Annuaire des Utilisateurs',
-        cardDesc: 'Gérez les accès et les permissions de tous les participants du NATP.',
-        tableUser: 'Utilisateur',
-        tableRole: 'Rôle',
-        tableActions: 'Actions',
-        roles: {
-          empresa: 'Entreprise',
-          admin: 'Admin'
-        }
-      },
-      configManager: {
-        cardTitle: 'Configuration Globale de l\'Événement',
-        cardDesc: 'Paramètres principaux, logos et activation des modules.',
-        editionName: 'Nom de l\'Édition',
-        sponsorsPlaceholder: 'Gestionnaire de Sponsors (En construction)'
-      },
-      auditLogs: {
-        cardTitle: 'Journal d\'Audit',
-        cardDesc: 'Historique des activités des administrateurs et modifications du système.',
-        emptyState: 'Aucun journal de sécurité récent.'
-      }
-    },
-    features: [
-      {
-        id: 'usuarios-roles',
-        title: 'Utilisateurs et rôles',
-        description:
-          'Gérez les utilisateurs du NATP par catégorie, organisation, pays, langue, accès, permissions, comités et responsabilités.',
-      },
-      {
-        id: 'portal-participante',
-        title: 'Portail participant',
-        description:
-          'Espace personnalisé avec agenda, réunions, documents, comités, notifications, IA, votes, transcriptions et recommandations.',
-      },
-      {
-        id: 'asistente-ia',
-        title: 'Assistant IA personnalisé',
-        description:
-          'Assistant adapté au rôle, aux permissions, à l’agenda et à la langue : répond aux questions, prépare les réunions, traduit, résume et crée le suivi.',
-      },
-      {
-        id: 'agenda',
-        title: 'Système d’agenda',
-        description:
-          'Agenda général, par comité, utilisateur, sponsors et administration, avec salles, horaires, intervenants et notifications en temps réel.',
-      },
-      {
-        id: 'notificaciones',
-        title: 'Système de notifications',
-        description:
-          'Communications automatiques et manuelles avant, pendant et après le Summit par e-mail et notifications in-app.',
-      },
-      {
-        id: 'matchmaking',
-        title: 'Business Matchmaking',
-        description:
-          'Connexions stratégiques entre participants, gouvernements, chambres et entreprises, avec motifs de match et demande de réunion.',
-      },
-      {
-        id: 'traduccion',
-        title: 'Traduction en temps réel',
-        description:
-          'Communication multilingue (anglais, espagnol et français) avec speech-to-text, sous-titres en direct et glossaire institutionnel.',
-      },
-    ],
   },
 };
 

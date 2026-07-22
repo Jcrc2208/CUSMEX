@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Assistant from './components/pages/Assistant.jsx';
 import Login from './components/pages/login.jsx';
 import Inicio from './components/pages/inicio.jsx';
 import Agenda from './components/pages/agenda.jsx';
@@ -73,10 +72,6 @@ return <Login {...sharedProps}/>
 
   if (route.moduleId === 'agenda') {
     return <Agenda sessionId={route.sessionId} {...sharedProps} />;
-  }
-
-  if (route.moduleId === 'asistente-ia') {
-    return <Assistant {...sharedProps} />;
   }
 
   if (route.moduleId === 'administracion') {
