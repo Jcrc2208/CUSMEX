@@ -211,21 +211,19 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
         </Card>
       )}
 
-      {/* Botón Flotante de Apertura */}
-      <button
-        onClick={() => setIsOpen((prev) => !prev)}
-        aria-label={copy?.badge || 'Asistente IA'}
-        className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground p-3.5 sm:px-5 sm:py-3.5 rounded-full shadow-2xl hover:scale-105 transition-all duration-300 group focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
-      >
-        {isOpen ? (
-          <Minus className="w-6 h-6" />
-        ) : (
+      {/* Botón Flotante de Apertura (Solo visible cuando el chat está CERRADO) */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          aria-label={copy?.badge || 'Asistente IA'}
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground p-3.5 sm:px-5 sm:py-3.5 rounded-full shadow-2xl hover:scale-105 transition-all duration-300 group focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+        >
           <Sparkles className="w-6 h-6 animate-pulse group-hover:rotate-12 transition-transform text-amber-400" />
-        )}
-        <span className="hidden sm:inline font-medium text-sm">
-          {isOpen ? 'Cerrar Chat' : copy?.badge || 'Asistente IA'}
-        </span>
-      </button>
+          <span className="hidden sm:inline font-medium text-sm">
+            {copy?.badge || 'Asistente IA'}
+          </span>
+        </button>
+      )}
     </div>
   );
 
