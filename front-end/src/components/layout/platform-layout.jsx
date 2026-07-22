@@ -60,7 +60,7 @@ export default function PlatformLayout({
         body: JSON.stringify({
           prompt: inputText,
           uploaded_by: currentUser,
-          item_content: currentItemContent
+          item_content: currentItemContent,
         }),
       });
 
@@ -315,8 +315,8 @@ export default function PlatformLayout({
         </div>
       </footer>
 
-      {/* Botón Flotante del Asistente IA (Se le puede pasar la función si el componente hijo lo requiere) */}
-      <FloatingAIButton onNavigate={onNavigate} onSendAI={handleSendMessageToAI} />
+      {/* Botón Flotante del Asistente IA */}
+      <FloatingAIButton language={language} onSendAI={handleSendMessageToAI} />
     </div>
   );
 }
