@@ -3,17 +3,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import Column, Integer, String
 from pydantic import BaseModel
-import bcrypt  # <-- Importamos la librería moderna directamente
+import bcrypt
 
 from database import get_db, engine, Base
 
-# 1. Definición del Modelo 
+# 1. Definición del Modelo
 class Usuario(Base):
     __tablename__ = "usuarios"
     id = Column(Integer, primary_key=True, index=True)
     correo = Column(String(250), unique=True, index=True, nullable=False)
     contraseña = Column(String(250), nullable=False)
     Rol = Column(String(50), nullable=False)
+
+# Crear las tablas automáticamente en la BD SQLite si no existen
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="CUSMEX API")
 
@@ -26,36 +29,70 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 3. Esquema de datos que envía el Frontend
+# 3. Sembrado inicial de datos (Poblado automático)
+def init_db():
+    db = SessionLocal()
+    try:
+        usuario_existente = db.query(Usuario).filter(Usuario.correo == "admin@natp.org").first()
+        if not usuario_existente:
+            # Generar hash de contraseña seguro en tiempo de ejecución
+            raw_password = "admin123".encode('utf-8')
+            salt = bcrypt.gensalt()
+            hashed_pw = bcrypt.hashpw(raw_password, salt).decode('utf-8')
+
+            # Insertar usuario admin inicial
+            nuevo_admin = Usuario(
+                correo="admin@natp.org",
+                contraseña=hashed_pw,
+                Rol="Administrador"
+            )
+            db.add(nuevo_admin)
+            db.commit()
+            print("--> Usuario 'admin@natp.org' creado exitosamente en SQLite.")
+    finally:
+        db.close()
+
+from database import SessionLocal
+init_db()
+
+# 4. Esquemas Pydantic
 class LoginRequest(BaseModel):
     email: str
     password: str
     accessRole: str
     language: str
 
-# 4. Endpoint de Login conectado a MariaDB/MySQL
+ROLE_EQUIVALENCES = {
+    "administrador": ["admin", "administrador"],
+    "admin": ["admin", "administrador"]
+}
+
+# 5. Endpoint de Login
 @app.post("/api/v1/auth/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     
-    # A. Buscar al usuario en la base de datos
-    db_user = db.query(Usuario).filter(
-        Usuario.correo == request.email, 
-        Usuario.Rol == request.accessRole
-    ).first()
+    # A. Buscar al usuario únicamente por su correo
+    db_user = db.query(Usuario).filter(Usuario.correo == request.email.strip()).first()
     
-    # B. Validar si el usuario no existe
     if not db_user:
+        raise HTTPException(status_code=401, detail="Correo, contraseña o rol incorrectos")
+
+    # B. Validar equivalencia de roles
+    role_frontend = request.accessRole.strip().lower()
+    role_bd = db_user.Rol.strip().lower()
+    valid_roles = ROLE_EQUIVALENCES.get(role_frontend, [role_frontend])
+
+    if role_bd not in valid_roles:
         raise HTTPException(status_code=401, detail="Correo, contraseña o rol incorrectos")
         
     # C. Verificar contraseña con bcrypt
-    # bcrypt requiere que los textos sean convertidos a "bytes" (encode utf-8) antes de comparar
     password_bytes = request.password.encode('utf-8')
     hash_bytes = db_user.contraseña.encode('utf-8')
     
     if not bcrypt.checkpw(password_bytes, hash_bytes):
         raise HTTPException(status_code=401, detail="Correo, contraseña o rol incorrectos")
     
-    # D. Si todo es correcto, permitimos el acceso
+    # D. Respuesta Exitosa
     return {
         "message": "Login exitoso",
         "token": "token-jwt-generado-proximamente",
