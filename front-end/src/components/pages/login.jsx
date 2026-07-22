@@ -70,6 +70,8 @@ export default function Login({
       const data = await response.json();
 
       if (response.ok) {
+        localStorage.setItem('auth_token', data.token)
+        localStorage.setItem('user_role', data.user.role)
         console.log('✅ Login exitoso:', data);
         navigateToModule('inicio');
       } else {
@@ -78,7 +80,7 @@ export default function Login({
       }
     } catch (error) {
       console.error('Error de conexión:', error);
-      alert('No se pudo conectar con el servidor. Verifica que auth.py esté corriendo.');
+      alert('No se pudo conectar con el servidor.');
     } finally {
       setIsLoading(false);
     }

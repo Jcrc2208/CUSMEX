@@ -6,6 +6,7 @@ import {
   Sun,
   Languages,
   X,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { COPY, LANGUAGES } from '../pages/login-i18n';
@@ -37,17 +38,17 @@ export default function PlatformLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isModulesOpen, setIsModulesOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
-
+  const isAuthenticated = !!localStorage.getItem('auth_token');
   const modulesMenuRef = useRef(null);
   const languageMenuRef = useRef(null);
 
   const t = COPY[language] ?? COPY.es;
-  const modules = t.modules.map((module) => ({
+
+  const modules = t.modules.filter((module) => module.id !=='auth').map((module)=>({    
     ...module,
     active: module.id === activeModuleId,
   }));
-  const currentLanguage =
-    LANGUAGES.find((item) => item.code === language) ?? LANGUAGES[0];
+  const currentLanguage = LANGUAGES.find((item) => item.code === language) ?? LANGUAGES[0];
 
   // Función integrada para comunicarse con el endpoint de FastAPI
   const handleSendMessageToAI = async (inputText, currentUser, currentItemContent) => {
@@ -103,7 +104,7 @@ export default function PlatformLayout({
       if (languageMenuRef.current && !languageMenuRef.current.contains(target)) {
         setIsLanguageOpen(false);
       }
-    }
+    }    
 
     function handleEscape(event) {
       if (event.key === 'Escape') {
@@ -121,6 +122,13 @@ export default function PlatformLayout({
     };
   }, []);
 
+  function handleLogout() {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_role');
+    window.location.hash = ''; 
+    window.location.reload(); 
+  }
+  
   function closeMobileMenu() {
     setIsMobileMenuOpen(false);
   }
@@ -153,7 +161,7 @@ export default function PlatformLayout({
               {BadgeIcon && <BadgeIcon className="h-3.5 w-3.5" />}
               {badgeLabel}
             </span>
-
+            {isAuthenticated && (
             <div className="modules-menu" ref={modulesMenuRef}>
               <Button
                 type="button"
@@ -195,9 +203,22 @@ export default function PlatformLayout({
                       </button>
                     );
                   })}
+                  <div className="my-1 border-t border-border"></div>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="modules-menu-item text-red-500 hover:bg-red-500/10 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4 shrink-0" />
+                      <span className="modules-menu-item-text">
+                        <span>{t.logout || 'Cerrar sesión'}</span>
+                      </span>
+                    </button>
                 </div>
               )}
             </div>
+            )}
           </div>
 
           <div className="navbar-right-actions">
@@ -247,7 +268,7 @@ export default function PlatformLayout({
             >
               {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
-
+            {isAuthenticated &&(
             <button
               type="button"
               className="mobile-menu-toggle"
@@ -261,10 +282,11 @@ export default function PlatformLayout({
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
+            )}
           </div>
         </nav>
 
-        {isMobileMenuOpen && (
+        {isMobileMenuOpen && isAuthenticated &&(
           <div className="mobile-menu-drawer animate-scale-in">
             <p className="mobile-menu-title">{t.modulesMobileTitle}</p>
             {modules.map((module) => {
@@ -284,6 +306,17 @@ export default function PlatformLayout({
                 </Button>
               );
             })}
+            <div className="my-1 border-t border-border"></div>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2 rounded-lg px-3 py-2 text-left text-red-500 hover:bg-red-500/10 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              <span className="whitespace-normal text-sm leading-snug">
+                {t.logout || 'Cerrar sesión'}
+              </span>
+            </Button>
           </div>
         )}
       </header>
@@ -316,7 +349,7 @@ export default function PlatformLayout({
       </footer>
 
       {/* Botón Flotante del Asistente IA */}
-      <FloatingAIButton language={language} onSendAI={handleSendMessageToAI} />
+      {isAuthenticated &&<FloatingAIButton language={language} onSendAI={handleSendMessageToAI} />}
     </div>
   );
 }

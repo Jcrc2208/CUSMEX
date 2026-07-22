@@ -62,8 +62,11 @@ export default function App() {
     onToggleTheme: () => setIsDarkMode((value) => !value),
     onNavigate: handleNavigate,
   };
-
+  const isAuthenticated =!!localStorage.getItem('auth_token');
   // Enrutamiento según route.moduleId
+  if (!isAuthenticated){
+return <Login {...sharedProps}/>
+  }
   if (route.moduleId === 'inicio') {
     return <Inicio {...sharedProps} />;
   }
