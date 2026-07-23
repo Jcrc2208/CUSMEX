@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import Column, Integer, String
 from pydantic import BaseModel
 import bcrypt
+from groq import Groq 
 
 from database import get_db, engine, Base
 
@@ -55,12 +56,20 @@ def init_db():
 from database import SessionLocal
 init_db()
 
+# CONFIGURACIÓN DEL CLIENTE GROQ (IA)
+client = Groq(api_key=("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"))
+
 # 4. Esquemas Pydantic
 class LoginRequest(BaseModel):
     email: str
     password: str
     accessRole: str
     language: str
+
+class ChatRequest(BaseModel):
+    prompt: str
+    uploaded_by: str = "Usuario"  # Quién subió el evento/archivo
+    item_content: str = ""        # Qué fue lo que subió
 
 ROLE_EQUIVALENCES = {
     "administrador": ["admin", "administrador"],
@@ -102,3 +111,31 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             "role": db_user.Rol
         }
     }
+
+# 6. Endpoint de Chat con IA (Groq)
+@app.post("/api/chat")
+async def chat_with_ai(data: ChatRequest):
+    try:
+        system_instruction = (
+            "Eres el asistente personal de CUSMEX. "
+            "REGLAS ESTRICTAS:\n"
+            "1. Cero rodeos y cero introducciones largas. Ve directo al grano.\n"
+            "2. Si el usuario responde con un 'sí', 'claro' o una afirmación corta a tu pregunta anterior, NO vuelvas a preguntar lo mismo; asume de inmediato la acción y muestra la información o los eventos de hoy.\n"
+            "3. Mantén las respuestas cortas (máximo 3-4 líneas) y en un tono natural y servicial."
+        )
+
+        user_message = f"Usuario: {data.uploaded_by}\nContenido subido: {data.item_content}\nComentario adicional: {data.prompt}"
+
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.5,
+        )
+        return {"response": completion.choices[0].message.content}
+        
+    except Exception as e:
+        print("Error en el cliente de Groq:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))

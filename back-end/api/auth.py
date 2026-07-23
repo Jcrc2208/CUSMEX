@@ -27,7 +27,7 @@ async def login(data: LoginSchema):
         return {
             "status": "success",
             "message": "Bienvenido al Nexus",
-            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            "token": "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"
         }
     
     raise HTTPException(
