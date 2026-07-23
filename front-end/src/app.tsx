@@ -62,6 +62,8 @@ export default function App() {
     onNavigate: handleNavigate,
   };
   const isAuthenticated =!!localStorage.getItem('auth_token');
+  const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
+  const isAdmin = userRole === 'admin' || userRole === 'administrador';
   // Enrutamiento según route.moduleId
   if (!isAuthenticated){
 return <Login {...sharedProps}/>
@@ -73,8 +75,12 @@ return <Login {...sharedProps}/>
   if (route.moduleId === 'agenda') {
     return <Agenda sessionId={route.sessionId} {...sharedProps} />;
   }
-
+    
   if (route.moduleId === 'administracion') {
+    if (!isAdmin) {
+      window.location.hash = '#inicio';
+      return <Inicio {...sharedProps} />;
+    }
     return <Admin {...sharedProps} />;
   }
 

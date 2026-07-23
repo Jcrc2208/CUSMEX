@@ -34,22 +34,30 @@ app.add_middleware(
 def init_db():
     db = SessionLocal()
     try:
-        usuario_existente = db.query(Usuario).filter(Usuario.correo == "admin@natp.org").first()
-        if not usuario_existente:
-            # Generar hash de contraseña seguro en tiempo de ejecución
-            raw_password = "admin123".encode('utf-8')
-            salt = bcrypt.gensalt()
-            hashed_pw = bcrypt.hashpw(raw_password, salt).decode('utf-8')
+        # Generamos el hash una sola vez para optimizar
+        raw_password = "admin123".encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed_pw = bcrypt.hashpw(raw_password, salt).decode('utf-8')
 
-            # Insertar usuario admin inicial
-            nuevo_admin = Usuario(
-                correo="admin@natp.org",
-                contraseña=hashed_pw,
-                Rol="Administrador"
-            )
-            db.add(nuevo_admin)
-            db.commit()
-            print("--> Usuario 'admin@natp.org' creado exitosamente en SQLite.")
+        # Lista de usuarios de prueba (Roles exactos que manda React)
+        usuarios_prueba = [
+            {"correo": "admin@natp.org", "rol": "admin"},
+            {"correo": "empresa@dominio.com", "rol": "empresas"},
+            {"correo": "gobierno@natp.org", "rol": "gobierno"}
+        ]
+
+        for user_data in usuarios_prueba:
+            usuario_existente = db.query(Usuario).filter(Usuario.correo == user_data["correo"]).first()
+            if not usuario_existente:
+                nuevo_usuario = Usuario(
+                    correo=user_data["correo"],
+                    contraseña=hashed_pw,
+                    Rol=user_data["rol"]
+                )
+                db.add(nuevo_usuario)
+                print(f"--> Usuario '{user_data['correo']}' (Rol: {user_data['rol']}) creado exitosamente.")
+        
+        db.commit()
     finally:
         db.close()
 

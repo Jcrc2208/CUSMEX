@@ -43,11 +43,13 @@ export default function PlatformLayout({
   const languageMenuRef = useRef(null);
 
   const t = COPY[language] ?? COPY.es;
-
-  const modules = t.modules.filter((module) => module.id !=='auth').map((module)=>({    
-    ...module,
-    active: module.id === activeModuleId,
-  }));
+  const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
+  const isAdmin = userRole === 'admin' || userRole=== 'administrador';
+  const modules = t.modules.filter((module) => {
+      if (module.id === 'auth') return false;
+      if (module.adminOnly && !isAdmin) return false; // Oculta Admin a usuarios normales
+      return true;
+    }).map((module) => ({...module,active: module.id === activeModuleId,}));
   const currentLanguage = LANGUAGES.find((item) => item.code === language) ?? LANGUAGES[0];
 
   // Función integrada para comunicarse con el endpoint de FastAPI
