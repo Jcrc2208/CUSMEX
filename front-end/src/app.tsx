@@ -3,6 +3,7 @@ import Login from './components/pages/login.jsx';
 import Inicio from './components/pages/inicio.jsx';
 import Agenda from './components/pages/agenda.jsx';
 import Admin from './components/pages/admin.jsx';
+import Networking from './components/pages/networking.jsx'; // 👈 1. Importas Networking
 import ModulePlaceholder from './components/pages/module-placeholder.jsx';
 import {
   applyLanguage,
@@ -61,13 +62,16 @@ export default function App() {
     onToggleTheme: () => setIsDarkMode((value) => !value),
     onNavigate: handleNavigate,
   };
-  const isAuthenticated =!!localStorage.getItem('auth_token');
+
+  const isAuthenticated = !!localStorage.getItem('auth_token');
   const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
   const isAdmin = userRole === 'admin' || userRole === 'administrador';
+
   // Enrutamiento según route.moduleId
-  if (!isAuthenticated){
-return <Login {...sharedProps}/>
+  if (!isAuthenticated) {
+    return <Login {...sharedProps} />;
   }
+
   if (route.moduleId === 'inicio') {
     return <Inicio {...sharedProps} />;
   }
@@ -75,7 +79,12 @@ return <Login {...sharedProps}/>
   if (route.moduleId === 'agenda') {
     return <Agenda sessionId={route.sessionId} {...sharedProps} />;
   }
-    
+
+  // 👈 2. Agregas esta condición para renderizar el módulo real
+  if (route.moduleId === 'networking') {
+    return <Networking {...sharedProps} />;
+  }
+
   if (route.moduleId === 'administracion') {
     if (!isAdmin) {
       window.location.hash = '#inicio';

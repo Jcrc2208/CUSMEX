@@ -9,7 +9,6 @@ import {
   MapPin,
   Search,
   Share2,
-  SlidersHorizontal,
   User,
 } from 'lucide-react';
 
@@ -27,7 +26,6 @@ import PlatformLayout from '@/components/layout/platform-layout';
 import {
   AGENDA_DAYS,
   AGENDA_SESSIONS,
-  AGENDA_STANDS,
   getSessionById,
   groupSessionsByTime,
 } from '@/data/agenda-sessions';
@@ -111,8 +109,7 @@ function SessionCard({ session, copy, labels, isFavorite, onToggleFavorite, onOp
             <Heart className="h-4 w-4" fill={isFavorite ? 'currentColor' : 'none'} />
           </Button>
         </div>
-        
-        {/* break-words evita que camelCase como openingKeynoteTitle ensanche la tarjeta */}
+
         <CardTitle className="text-base leading-snug line-clamp-2 break-words">
           {title}
         </CardTitle>
@@ -224,35 +221,8 @@ function AgendaList({
         </div>
       </div>
 
-      {/* Stands */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card/50 p-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground mr-1">
-            {copy?.standsLabel || 'Salones'}:
-          </span>
-          {AGENDA_STANDS.map((stand) => (
-            <Button
-              key={stand.id}
-              variant="outline"
-              size="xs"
-              disabled={stand.pending}
-              title={copy?.standsPendingHint}
-              className="opacity-75 cursor-not-allowed"
-            >
-              {labels?.stands?.[stand.labelKey] ?? stand.labelKey}
-            </Button>
-          ))}
-        </div>
-        <Button variant="ghost" size="xs" disabled className="gap-1">
-          <SlidersHorizontal className="h-3.5 w-3.5" />
-          {copy?.themesFilter || 'Ejes temáticos'}
-        </Button>
-      </div>
-
-      <Separator />
-
       {/* Grid del Timeline */}
-      <div className="space-y-6">
+      <div className="space-y-6 pt-2">
         {grouped.length === 0 && (
           <div className="py-12 text-center text-sm text-muted-foreground">
             {copy?.emptyDay || 'No hay sesiones programadas.'}

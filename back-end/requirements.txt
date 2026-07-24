@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+sqlalchemy==2.0.51
+python-multipart==0.0.20
+groq
+bcrypt==4.0.1
+greenlet==3.0.3
