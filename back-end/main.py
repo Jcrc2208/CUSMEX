@@ -43,7 +43,8 @@ def init_db():
         usuarios_prueba = [
             {"correo": "admin@natp.org", "rol": "admin"},
             {"correo": "empresa@dominio.com", "rol": "empresas"},
-            {"correo": "gobierno@natp.org", "rol": "gobierno"}
+            {"correo": "gobierno@natp.org", "rol": "gobierno"},
+            {"correo": "patrocinador@natp.org", "rol": "patrocinador"},
         ]
 
         for user_data in usuarios_prueba:

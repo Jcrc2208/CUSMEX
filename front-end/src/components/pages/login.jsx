@@ -176,6 +176,16 @@ export default function Login({
                         </button>
                         <button
                           type="button"
+                          className={`role-menu-item ${accessRole === 'patrocinador' ? 'is-active' : ''}`}
+                          onClick={() => {
+                            setAccessRole('patrocinador');
+                            setIsRoleOpen(false);
+                          }}
+                        >
+                          {t.roles.patrocinador.title}
+                        </button>
+                        <button
+                          type="button"
                           className={`role-menu-item ${accessRole === 'admin' ? 'is-active' : ''}`}
                           onClick={() => {
                             setAccessRole('admin');
@@ -183,7 +193,7 @@ export default function Login({
                           }}
                         >
                           {t.roles.admin.title}
-                        </button>
+                        </button>                        
                       </div>
                     )}
                   </div>
