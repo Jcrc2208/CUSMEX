@@ -390,6 +390,7 @@ function AgendaDetail({ sessionId, copy, labels, favoriteIds, onToggleFavorite }
             <CalendarPlus className="h-4 w-4 mr-2" />
             {copy?.addGoogleCalendar || 'Añadir a Google Calendar'}
           </Button>
+          
            <Button 
            type="button" 
            variant="outline"

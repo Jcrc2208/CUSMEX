@@ -13,9 +13,17 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
     allowedHosts: [
       '.pinggy.net',
       '.pinggy-free.link',
+      '.ngrok-free.dev',
+      'grooving-dock-emperor.ngrok-free.dev'
     ],
   },
 });
