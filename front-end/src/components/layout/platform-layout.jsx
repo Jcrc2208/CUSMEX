@@ -47,9 +47,11 @@ export default function PlatformLayout({
   const t = COPY[language] ?? COPY.es;
   const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
   const isAdmin = userRole === 'admin' || userRole=== 'administrador';
+  const isSponsor = userRole === 'patrocinador';
   const modules = t.modules.filter((module) => {
       if (module.id === 'auth') return false;
-      if (module.adminOnly && !isAdmin) return false; // Oculta Admin a usuarios normales
+      if (module.adminOnly && !isAdmin) return false; 
+      if (module.sponsorOrAdminOnly && !isAdmin && !isSponsor) return false;
       return true;
     }).map((module) => ({...module,active: module.id === activeModuleId,}));
   const currentLanguage = LANGUAGES.find((item) => item.code === language) ?? LANGUAGES[0];
