@@ -16,10 +16,12 @@ const PLATFORM_MODULES = [
   { id: 'participantes', icon: Users },
   { id: 'networking', icon: Handshake },
   { id: 'agenda', icon: CalendarDays },
-  { id: 'comites', icon: Landmark },  
+  { id: 'comites', icon: Landmark },
+  { id: 'sponsors', icon: ShieldCheck},
   { id: 'administracion', icon: Settings, adminOnly: true },
-  { id: 'auth', icon: ShieldCheck },
+  { id: 'auth', icon: ShieldCheck }
 ];
+
 
 function buildModules(labels) {
   return PLATFORM_MODULES.map((module) => ({
