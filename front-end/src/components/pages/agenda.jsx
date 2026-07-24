@@ -383,14 +383,24 @@ function AgendaDetail({ sessionId, copy, labels, favoriteIds, onToggleFavorite }
             const title = encodeURIComponent("reunion CUSMEX");
             const details = encodeURIComponent("seguimiento de tareas y avances del proyecto.");
             const location = encodeURIComponent("remoto");
-            const dates ="20240620T150000Z/20240620T160000Z"; // Formato: YYYYMMDDTHHMMSSZ
+            
+           // Obtenemos la fecha y hora actual en formato UTC requerido por Google Calendar
+            const now = new Date();
+           const startIso = now.toISOString().replace(/-|:|\.\d+/g, ""); // Ej: 20260724T162736Z
+    
+            // Sumamos 1 hora para la hora de fin
+            const endDate = new Date(now.getTime() + 60 * 60 * 1000);
+            const endIso = endDate.toISOString().replace(/-|:|\.\d+/g, "");
+
+            const dates = `${startIso}/${endIso}`;
+            
             const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}`;
             window.open(url, '_blank');
           }}>
             <CalendarPlus className="h-4 w-4 mr-2" />
             {copy?.addGoogleCalendar || 'Añadir a Google Calendar'}
           </Button>
-          
+
            <Button 
            type="button" 
            variant="outline"
