@@ -3,8 +3,10 @@ import Login from './components/pages/login.jsx';
 import Inicio from './components/pages/inicio.jsx';
 import Agenda from './components/pages/agenda.jsx';
 import Admin from './components/pages/admin.jsx';
-import Networking from './components/pages/networking.jsx'; // 👈 1. Importas Networking
+import Networking from './components/pages/networking.jsx'; 
 import Comites from './components/pages/comites.jsx';
+import Sponsors from './components/pages/sponsors.jsx'; // 👈 1. Importas el componente Sponsors
+
 import ModulePlaceholder from './components/pages/module-placeholder.jsx';
 import {
   applyLanguage,
@@ -82,9 +84,14 @@ export default function App() {
   }
   if (route.moduleId === 'comites') {
     return <Comites {...sharedProps} />;
-  }  
+  }   
   if (route.moduleId === 'networking') {
     return <Networking {...sharedProps} />;
+  }
+
+  // 🔴 AGREGAR ESTE BLOQUE:
+  if (route.moduleId === 'sponsors') {
+    return <Sponsors {...sharedProps} />;
   }
 
   if (route.moduleId === 'administracion') {
@@ -94,10 +101,4 @@ export default function App() {
     }
     return <Admin {...sharedProps} />;
   }
-
-  if (!isModuleAvailable(route.moduleId)) {
-    return <ModulePlaceholder moduleId={route.moduleId} {...sharedProps} />;
-  }
-
-  return <Login {...sharedProps} />;
 }
