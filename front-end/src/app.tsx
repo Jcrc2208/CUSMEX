@@ -88,8 +88,7 @@ export default function App() {
   if (route.moduleId === 'networking') {
     return <Networking {...sharedProps} />;
   }
-
-  // 🔴 AGREGAR ESTE BLOQUE:
+  
   if (route.moduleId === 'sponsors') {
     return <Sponsors {...sharedProps} />;
   }
