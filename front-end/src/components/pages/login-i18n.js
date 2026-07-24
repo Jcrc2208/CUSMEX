@@ -16,8 +16,7 @@ const PLATFORM_MODULES = [
   { id: 'participantes', icon: Users },
   { id: 'networking', icon: Handshake },
   { id: 'agenda', icon: CalendarDays },
-  { id: 'comites', icon: Landmark },
-  { id: 'notificaciones', icon: Bell },
+  { id: 'comites', icon: Landmark },  
   { id: 'administracion', icon: Settings, adminOnly: true },
   { id: 'auth', icon: ShieldCheck },
 ];
@@ -56,8 +55,7 @@ const FEATURE_ICONS = {
   'usuarios-roles': Users,
   'portal-participante': LayoutDashboard,
   'asistente-ia': Sparkles,
-  agenda: CalendarDays,
-  notificaciones: Bell,
+  agenda: CalendarDays,  
   matchmaking: Handshake,
   traduccion: Languages,
 };
@@ -113,12 +111,7 @@ export const COPY = {
         'Comités y miembros',
         'Documentos y votaciones',
         'Responsabilidades',
-      ],
-      notificaciones: [
-        'Mensajes y anuncios',
-        'Recordatorios',
-        'Comunicaciones oficiales',
-      ],
+      ],      
       administracion: [        
         'Usuarios, roles y permisos',
         'Configuración y patrocinadores',
@@ -130,8 +123,7 @@ export const COPY = {
       participantes: 'Participantes',
       networking: 'Networking',
       agenda: 'Agenda',
-      comites: 'Comités',
-      notificaciones: 'Notificaciones',
+      comites: 'Comités',      
       administracion: 'Administración',
       auth: 'Autenticación y Control de Acceso',
     },
@@ -140,8 +132,7 @@ export const COPY = {
       participantes: 'Participantes',
       networking: 'Networking',
       agenda: 'Agenda',
-      comites: 'Comités',
-      notificaciones: 'Notificaciones',
+      comites: 'Comités',      
       administracion: 'Administración',
       auth: 'Autenticación y Control de Acceso',
     }),
@@ -170,8 +161,7 @@ export const COPY = {
         title: 'Accesos rápidos',
         items: [
           { id: 'agenda', label: 'Ver agenda del evento', hint: 'Sesiones, salas y ponentes' },
-          { id: 'networking', label: 'Explorar matchmaking', hint: 'Empresas y solicitudes' },
-          { id: 'notificaciones', label: 'Centro de notificaciones', hint: 'Anuncios y recordatorios' },
+          { id: 'networking', label: 'Explorar matchmaking', hint: 'Empresas y solicitudes' },          
         ],
       },
       upcomingMeetings: {
@@ -390,13 +380,7 @@ export const COPY = {
         title: 'Sistema de Agenda',
         description:
           'Agenda general, por comité, usuario, patrocinadores y administración, con salas, horarios, ponentes y notificaciones en tiempo real.',
-      },
-      {
-        id: 'notificaciones',
-        title: 'Sistema de Notificaciones',
-        description:
-          'Comunicaciones automáticas y manuales antes, durante y después del Summit por email y notificaciones in-app.',
-      },
+      },    
       {
         id: 'matchmaking',
         title: 'Business Matchmaking',
@@ -457,8 +441,7 @@ export const COPY = {
         'Meetings, rooms, and speakers',
         'Integrated calendar',
       ],
-      comites: ['Committees and members', 'Documents and voting', 'Responsibilities'],
-      notificaciones: ['Messages and announcements', 'Reminders', 'Official communications'],
+      comites: ['Committees and members', 'Documents and voting', 'Responsibilities'],      
       administracion: [
         'Users, roles, and permissions',
         'Configuration and sponsors',
@@ -470,8 +453,7 @@ export const COPY = {
       participantes: 'Participants',
       networking: 'Networking',
       agenda: 'Agenda',
-      comites: 'Committees',
-      notificaciones: 'Notifications',
+      comites: 'Committees',      
       administracion: 'Administration',
       auth: 'Authentication and Access Control',
     },
@@ -480,8 +462,7 @@ export const COPY = {
       participantes: 'Participants',
       networking: 'Networking',
       agenda: 'Agenda',
-      comites: 'Committees',
-      notificaciones: 'Notifications',
+      comites: 'Committees',      
       administracion: 'Administration',
       auth: 'Authentication and Access Control',
     }),
@@ -510,8 +491,7 @@ export const COPY = {
         title: 'Quick access',
         items: [
           { id: 'agenda', label: 'View event agenda', hint: 'Sessions, rooms, and speakers' },
-          { id: 'networking', label: 'Explore matchmaking', hint: 'Companies and requests' },
-          { id: 'notificaciones', label: 'Notification center', hint: 'Announcements and reminders' },
+          { id: 'networking', label: 'Explore matchmaking', hint: 'Companies and requests' },          
         ],
       },
       upcomingMeetings: {
@@ -730,13 +710,7 @@ export const COPY = {
         title: 'Agenda System',
         description:
           'General, committee, user, sponsor, and admin agendas with rooms, schedules, speakers, and real-time notifications.',
-      },
-      {
-        id: 'notificaciones',
-        title: 'Notification System',
-        description:
-          'Automatic and manual communications before, during, and after the Summit via email and in-app notifications.',
-      },
+      },      
       {
         id: 'matchmaking',
         title: 'Business Matchmaking',
@@ -797,8 +771,7 @@ export const COPY = {
         'Réunions, salles et intervenants',
         'Calendrier intégré',
       ],
-      comites: ['Comités et membres', 'Documents et votes', 'Responsabilités'],
-      notificaciones: ['Messages et annonces', 'Rappels', 'Communications officielles'],
+      comites: ['Comités et membres', 'Documents et votes', 'Responsabilités'],      
       administracion: [
         'Utilisateurs, rôles et permissions',
         'Configuration et sponsors',
@@ -810,8 +783,7 @@ export const COPY = {
       participantes: 'Participants',
       networking: 'Networking',
       agenda: 'Agenda',
-      comites: 'Comités',
-      notificaciones: 'Notifications',
+      comites: 'Comités',      
       administracion: 'Administration',
       auth: 'Authentification et contrôle d’accès',
     },
@@ -820,8 +792,7 @@ export const COPY = {
       participantes: 'Participants',
       networking: 'Networking',
       agenda: 'Agenda',
-      comites: 'Comités',
-      notificaciones: 'Notifications',
+      comites: 'Comités',      
       administracion: 'Administration',
       auth: 'Authentification et contrôle d’accès',
     }),
@@ -850,8 +821,7 @@ export const COPY = {
         title: 'Accès rapides',
         items: [
           { id: 'agenda', label: 'Voir l’agenda', hint: 'Sessions, salles et intervenants' },
-          { id: 'networking', label: 'Explorer le matchmaking', hint: 'Entreprises et demandes' },
-          { id: 'notificaciones', label: 'Centre de notifications', hint: 'Annonces et rappels' },
+          { id: 'networking', label: 'Explorer le matchmaking', hint: 'Entreprises et demandes' },          
         ],
       },
       upcomingMeetings: {

@@ -6,7 +6,8 @@ import {
   Sun,
   Languages,
   X,
-  LogOut
+  LogOut,
+  Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { COPY, LANGUAGES } from '../pages/login-i18n';
@@ -41,7 +42,8 @@ export default function PlatformLayout({
   const isAuthenticated = !!localStorage.getItem('auth_token');
   const modulesMenuRef = useRef(null);
   const languageMenuRef = useRef(null);
-
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const notificationsRef = useRef(null);
   const t = COPY[language] ?? COPY.es;
   const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
   const isAdmin = userRole === 'admin' || userRole=== 'administrador';
@@ -105,6 +107,9 @@ export default function PlatformLayout({
       }
       if (languageMenuRef.current && !languageMenuRef.current.contains(target)) {
         setIsLanguageOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(target)) {
+        setIsNotificationsOpen(false);
       }
     }    
 
@@ -224,6 +229,46 @@ export default function PlatformLayout({
           </div>
 
           <div className="navbar-right-actions">
+            {isAuthenticated && (
+              <div className="relative flex items-center" ref={notificationsRef}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="theme-toggle-btn rounded-full relative mr-1"
+                  onClick={() => {
+                    setIsModulesOpen(false);
+                    setIsLanguageOpen(false);
+                    setIsMobileMenuOpen(false);
+                    setIsNotificationsOpen((open) => !open); // Abre/cierra el panel
+                  }}
+                >
+                  <Bell className="h-4 w-4" />
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 border border-background"></span>
+                </Button>
+
+                {isNotificationsOpen && (
+                  <div className="absolute top-full right-0 mt-2 w-72 bg-background border border-border rounded-lg shadow-lg p-4 z-50 animate-scale-in">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-semibold text-sm">Tus pendientes</p>
+                      <span className="text-[10px] text-muted-foreground cursor-pointer hover:underline">Marcar leídas</span>
+                    </div>
+                    <div className="space-y-3">
+                       {/* Pendiente 1 */}
+                       <div className="text-xs hover:bg-muted/50 p-2 rounded-md transition-colors cursor-pointer">
+                         <p className="font-semibold text-primary">Votación requerida</p>
+                         <p className="text-muted-foreground mt-0.5">La Resolución Institucional #42 cierra en 45 min. Requiere tu voto.</p>
+                       </div>
+                       {/* Pendiente 2 */}
+                       <div className="text-xs border-t border-border pt-3 hover:bg-muted/50 p-2 rounded-md transition-colors cursor-pointer">
+                         <p className="font-semibold text-primary">Reunión confirmada</p>
+                         <p className="text-muted-foreground mt-0.5">Matchmaking con Tesla aceptado para hoy a las 11:00 AM.</p>
+                       </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="language-menu" ref={languageMenuRef}>
               <Button
                 type="button"
@@ -347,14 +392,7 @@ export default function PlatformLayout({
               ))}
             </div>
           </div>
-        </div>
-        <div className='w-full text-center mt-2'>
-          <p className='text-[11px] text-muted-foreground/40 hover:text-muted-foreground/80 transition-colors duration-300'>
-              Diseñado y desarrollado por <a href="https://github.com/PLAYCHER" target="_blank" rel="noopener noreferrer" className="hover:underline">Sergio Gomez, </a>
-              <a href="https://github.com/Jcrc2208" target="_blank" rel="noopener noreferrer" className="hover:underline"> Juan y</a>
-              <a href="https://github.com/marcooramoslana-dev" target="_blank" rel="noopener noreferrer" className="hover:underline"> Marcos </a>
-          </p>
-        </div>
+        </div>        
       </footer>
 
       {/* Botón Flotante del Asistente IA */}
