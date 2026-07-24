@@ -348,6 +348,13 @@ export default function PlatformLayout({
             </div>
           </div>
         </div>
+        <div className='w-full text-center mt-2'>
+          <p className='text-[11px] text-muted-foreground/40 hover:text-muted-foreground/80 transition-colors duration-300'>
+              Diseñado y desarrollado por <a href="https://github.com/PLAYCHER" target="_blank" rel="noopener noreferrer" className="hover:underline">Sergio Gomez, </a>
+              <a href="https://github.com/Jcrc2208" target="_blank" rel="noopener noreferrer" className="hover:underline"> Juan y</a>
+              <a href="https://github.com/marcooramoslana-dev" target="_blank" rel="noopener noreferrer" className="hover:underline"> Marcos </a>
+          </p>
+        </div>
       </footer>
 
       {/* Botón Flotante del Asistente IA */}

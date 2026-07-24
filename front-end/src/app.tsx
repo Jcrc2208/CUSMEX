@@ -4,6 +4,7 @@ import Inicio from './components/pages/inicio.jsx';
 import Agenda from './components/pages/agenda.jsx';
 import Admin from './components/pages/admin.jsx';
 import Networking from './components/pages/networking.jsx'; // 👈 1. Importas Networking
+import Comites from './components/pages/comites.jsx';
 import ModulePlaceholder from './components/pages/module-placeholder.jsx';
 import {
   applyLanguage,
@@ -79,8 +80,9 @@ export default function App() {
   if (route.moduleId === 'agenda') {
     return <Agenda sessionId={route.sessionId} {...sharedProps} />;
   }
-
-  // 👈 2. Agregas esta condición para renderizar el módulo real
+  if (route.moduleId === 'comites') {
+    return <Comites {...sharedProps} />;
+  }  
   if (route.moduleId === 'networking') {
     return <Networking {...sharedProps} />;
   }
