@@ -323,6 +323,11 @@ export const COPY = {
           'Entra para coordinar networking, reuniones y tu presencia en la Asamblea de Oakland.',
         placeholder: 'empresa@dominio.com',
       },
+      patrocinador: {
+        title: 'Acceso Patrocinador',
+        description: 'Para aliados estratégicos, sponsors y partners oficiales del evento.',
+        placeholder: 'patrocinador@dominio.com',
+      },      
       admin: {
         title: 'Administrador',
         description: 'Gestiona cuentas, roles institucionales, auditoría y la configuración general de Nexus.',
@@ -652,12 +657,17 @@ export const COPY = {
         description:
           'Sign in to coordinate networking, meetings, and your presence at the Oakland Assembly.',
         placeholder: 'company@domain.com',
+      },      
+      patrocinador: {
+        title: 'Sponsor Access',
+        description: 'For strategic allies, sponsors, and official event partners.',
+        placeholder: 'sponsor@domain.com',
       },
       admin: {
         title: 'Administrator',
         description: 'Manage accounts, institutional roles, auditing, and general Nexus configuration.',
         placeholder: 'admin@natp.org',
-      }
+      }            
     },
     admin: {
       title: 'Administration Panel',
