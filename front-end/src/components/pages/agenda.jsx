@@ -376,14 +376,45 @@ function AgendaDetail({ sessionId, copy, labels, favoriteIds, onToggleFavorite }
             {isFavorite ? (copy?.removeFromAgenda || 'Quitar de mi agenda') : (copy?.myAgenda || 'Añadir a mi agenda')}
           </Button>
 
-          <Button type="button" variant="outline" className="flex-1 sm:flex-none rounded-xl" disabled>
+
+          <Button type="button" 
+            variant="outline"
+            className="flex-1 sm:flex-none rounded-xl " onClick={() => {
+            const title = encodeURIComponent("reunion CUSMEX");
+            const details = encodeURIComponent("seguimiento de tareas y avances del proyecto.");
+            const location = encodeURIComponent("remoto");
+            const dates ="20240620T150000Z/20240620T160000Z"; // Formato: YYYYMMDDTHHMMSSZ
+            const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}`;
+            window.open(url, '_blank');
+          }}>
             <CalendarPlus className="h-4 w-4 mr-2" />
             {copy?.addGoogleCalendar || 'Añadir a Google Calendar'}
           </Button>
-
-          <Button type="button" variant="outline" className="rounded-xl" disabled>
-            <Share2 className="h-4 w-4" />
-          </Button>
+           <Button 
+           type="button" 
+           variant="outline"
+           className="rounded-xl" 
+           onClick={async () => {
+            if (navigator.share) {
+           try {
+           await navigator.share({
+            title: 'CUSMEX - Reunión',
+            text: 'Te comparto los detalles del seguimiento de tareas y avances del proyecto CUSMEX.',
+            url: window.location.href,
+            });
+            } catch (error) {
+            if (error.name !== 'AbortError') {
+            console.error('Error al compartir:', error);
+            }
+            }
+            } else {
+            navigator.clipboard.writeText(window.location.href);
+           alert('¡Enlace copiado al portapapeles!');
+           }
+           }}
+           >
+           <Share2 className="h-4 w-4" />
+           </Button>
         </div>
       </div>
     </main>
