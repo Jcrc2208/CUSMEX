@@ -57,7 +57,7 @@ export default function PlatformLayout({
   // Función integrada para comunicarse con el endpoint de FastAPI
   const handleSendMessageToAI = async (inputText, currentUser, currentItemContent) => {
     try {
-      const response = await fetch("http://localhost:8000/api/chat", {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
