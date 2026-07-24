@@ -5,9 +5,12 @@ import Agenda from './components/pages/agenda.jsx';
 import Admin from './components/pages/admin.jsx';
 import Networking from './components/pages/networking.jsx'; 
 import Comites from './components/pages/comites.jsx';
-import Sponsors from './components/pages/sponsors.jsx'; // 👈 1. Importas el componente Sponsors
+import Sponsors from './components/pages/sponsors.jsx';
 
+// Importa tu componente de Participantes o usa el Placeholder mientras lo desarrollas:
+// import Participantes from './components/pages/participantes.jsx'; 
 import ModulePlaceholder from './components/pages/module-placeholder.jsx';
+
 import {
   applyLanguage,
   getInitialLanguage,
@@ -70,26 +73,34 @@ export default function App() {
   const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
   const isAdmin = userRole === 'admin' || userRole === 'administrador';
 
-  // Enrutamiento según route.moduleId
+  // Autenticación
   if (!isAuthenticated) {
     return <Login {...sharedProps} />;
   }
 
+  // Enrutamiento según route.moduleId
   if (route.moduleId === 'inicio') {
     return <Inicio {...sharedProps} />;
+  }
+
+  // 🟢 AGREGADO: Módulo de Participantes
+  if (route.moduleId === 'participantes') {
+    // Si ya tienes un componente <Participantes />, cámbialo por este Placeholder:
+    return <ModulePlaceholder moduleId="participantes" {...sharedProps} />;
   }
 
   if (route.moduleId === 'agenda') {
     return <Agenda sessionId={route.sessionId} {...sharedProps} />;
   }
+
   if (route.moduleId === 'comites') {
     return <Comites {...sharedProps} />;
   }   
+
   if (route.moduleId === 'networking') {
     return <Networking {...sharedProps} />;
   }
 
-  // 🔴 AGREGAR ESTE BLOQUE:
   if (route.moduleId === 'sponsors') {
     return <Sponsors {...sharedProps} />;
   }
@@ -101,4 +112,8 @@ export default function App() {
     }
     return <Admin {...sharedProps} />;
   }
+
+  // 🛡️ FALLBACK: Si la ruta no coincide con ninguna opción previa, renderiza Inicio
+  // (Esto evita que React retorne undefined si entran a un hash desconocido)
+  return <Inicio {...sharedProps} />;
 }
