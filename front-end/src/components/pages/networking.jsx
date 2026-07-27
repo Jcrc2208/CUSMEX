@@ -12,7 +12,10 @@ import {
   Search,
   SlidersHorizontal,
   X,
-  Filter
+  Filter,
+  Loader2,
+  Linkedin,
+  Globe
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -27,17 +30,34 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [activeTab, setActiveTab] = useState('ai'); // 'ai' | 'search'
   const [requestedMeetings, setRequestedMeetings] = useState(new Set());
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Estado para controlar la visibilidad del modal de filtros
+  // Modal de Filtros
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
-  // Estado del Formulario de Onboarding
+  // ------------------------------------------------------------------
+  // ESTADO DEL FORMULARIO DE ONBOARDING (Alineado a la BD y al PDF)
+  // ------------------------------------------------------------------
   const [cvFile, setCvFile] = useState(null);
   const [formData, setFormData] = useState({
-    offering: '',
-    lookingFor: '',
-    networkingGoal: '',
-    meetingPreference: '',
+    // Informacion Laboral y Corporativa
+    puesto_cargo: '',
+    empresa_institucion: '',
+    tamano_empresa: '',
+    
+    // Oferta y Demanda B2B
+    servicios_ofrece: '',
+    servicios_busca: '',
+    objetivo_networking: '',
+    formato_reunion: '',
+    
+    // Links y Perfil Publico
+    perfil_linkedin: '',
+    sitio_web: '',
+    resumen_ejecutivo: '',
+    
+    // Visibilidad
+    perfil_publico: true
   });
 
   // Filtros para la Búsqueda Libre
@@ -47,7 +67,7 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
   const [filterGoal, setFilterGoal] = useState('');
   const [filterFormat, setFilterFormat] = useState('');
 
-  // Contador de filtros activos (excluyendo el buscador de texto)
+  // Contador de filtros activos
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (filterOffering) count++;
@@ -57,18 +77,74 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
     return count;
   }, [filterOffering, filterLookingFor, filterGoal, filterFormat]);
 
-  // Efecto para regresar al inicio de la página
+  // Efecto para regresar al inicio de la página al cambiar vistas
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [isProfileComplete, activeTab]);
 
-  const handleCompleteSetup = (e) => {
+  // ------------------------------------------------------------------
+  // HANDLER DE SUBMIT (Envío al Backend / DB)
+  // ------------------------------------------------------------------
+  const handleCompleteSetup = async (e) => {
     e.preventDefault();
-    setIsProfileComplete(true);
-    setActiveTab('ai');
+    setIsSubmitting(true);
+
+    try {
+      /* 
+        ==================================================================
+        BACKEND INTEGRATION: INSERT INTO perfil_networking
+        ==================================================================
+        Cuando el backend esté listo, usa FormData para enviar tanto el PDF 
+        como los campos de texto en una sola petición multipart/form-data.
+
+        const bodyData = new FormData();
+        if (cvFile) bodyData.append('cv_pdf', cvFile);
+        bodyData.append('puesto_cargo', formData.puesto_cargo);
+        bodyData.append('empresa_institucion', formData.empresa_institucion);
+        bodyData.append('tamano_empresa', formData.tamano_empresa);
+        bodyData.append('servicios_ofrece', formData.servicios_ofrece);
+        bodyData.append('servicios_busca', formData.servicios_busca);
+        bodyData.append('objetivo_networking', formData.objetivo_networking);
+        bodyData.append('formato_reunion', formData.formato_reunion);
+        bodyData.append('perfil_linkedin', formData.perfil_linkedin);
+        bodyData.append('sitio_web', formData.sitio_web);
+        bodyData.append('resumen_ejecutivo', formData.resumen_ejecutivo);
+        bodyData.append('perfil_publico', formData.perfil_publico);
+
+        const response = await fetch('/api/networking/perfil', {
+          method: 'POST', // o 'PUT' si el perfil ya existe
+          headers: {
+            'Authorization': `Bearer ${userToken}`,
+          },
+          body: bodyData,
+        });
+
+        const result = await response.json();
+      */
+
+      // Simulación de envío exitoso
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      setIsProfileComplete(true);
+      setActiveTab('ai');
+    } catch (error) {
+      console.error('Error al guardar el perfil de networking:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleRequestMeeting = (id) => {
+  const handleRequestMeeting = async (id) => {
+    /* 
+      ==================================================================
+      BACKEND INTEGRATION: INSERT INTO solicitudes_reunion
+      ==================================================================
+      await fetch('/api/networking/reuniones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ perfil_destino_id: id })
+      });
+    */
     setRequestedMeetings((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -181,7 +257,7 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
             <CardContent>
               <form onSubmit={handleCompleteSetup} className="space-y-5">
                 
-                {/* Carga de CV */}
+                {/* 1. Carga de CV / Presentación */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">
                     1. Carga tu CV o Presentación Corporativa (PDF)
@@ -203,16 +279,76 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
 
                 <Separator />
 
-                {/* Preguntas Directas */}
+                {/* 2. Información Profesional y de Empresa */}
+                <div className="space-y-3">
+                  <span className="text-xs font-semibold text-foreground block">
+                    2. Información Profesional
+                  </span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                        Puesto / Cargo
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="Ej. Director de Innovación"
+                        className="h-9 text-xs"
+                        value={formData.puesto_cargo}
+                        onChange={(e) => setFormData({ ...formData, puesto_cargo: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                        Empresa u Organización
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="Ej. TechCorp"
+                        className="h-9 text-xs"
+                        value={formData.empresa_institucion}
+                        onChange={(e) => setFormData({ ...formData, empresa_institucion: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                      Tamaño de la Empresa
+                    </label>
+                    <select 
+                      className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      value={formData.tamano_empresa}
+                      onChange={(e) => setFormData({ ...formData, tamano_empresa: e.target.value })}
+                    >
+                      <option value="">Selecciona tamaño...</option>
+                      <option value="Startup / Inicios (1-10)">Startup / Inicios (1-10 colaboradores)</option>
+                      <option value="PyME (11-50)">PyME (11-50 colaboradores)</option>
+                      <option value="Mediana (51-200)">Mediana (51-200 colaboradores)</option>
+                      <option value="Corporativo (+200)">Corporativo (+200 colaboradores)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* 3. Preguntas de Oferta y Demanda B2B */}
                 <div className="space-y-4">
+                  <span className="text-xs font-semibold text-foreground block">
+                    3. Intercambio Comercial & Objetivos
+                  </span>
+
                   <div>
                     <label className="text-[11px] font-medium text-muted-foreground block mb-1">
                       ¿Qué servicios, productos o soluciones OFRECES?
                     </label>
                     <select 
                       className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      value={formData.offering}
-                      onChange={(e) => setFormData({...formData, offering: e.target.value})}
+                      value={formData.servicios_ofrece}
+                      onChange={(e) => setFormData({...formData, servicios_ofrece: e.target.value})}
                       required
                     >
                       <option value="">Selecciona una opción principal...</option>
@@ -231,8 +367,8 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                     </label>
                     <select 
                       className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      value={formData.lookingFor}
-                      onChange={(e) => setFormData({...formData, lookingFor: e.target.value})}
+                      value={formData.servicios_busca}
+                      onChange={(e) => setFormData({...formData, servicios_busca: e.target.value})}
                       required
                     >
                       <option value="">Selecciona qué buscas conectar...</option>
@@ -251,8 +387,8 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                       </label>
                       <select 
                         className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                        value={formData.networkingGoal}
-                        onChange={(e) => setFormData({...formData, networkingGoal: e.target.value})}
+                        value={formData.objetivo_networking}
+                        onChange={(e) => setFormData({...formData, objetivo_networking: e.target.value})}
                       >
                         <option value="">Selecciona objetivo...</option>
                         <option value="Conseguir Clientes">Conseguir Clientes</option>
@@ -267,8 +403,8 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                       </label>
                       <select 
                         className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                        value={formData.meetingPreference}
-                        onChange={(e) => setFormData({...formData, meetingPreference: e.target.value})}
+                        value={formData.formato_reunion}
+                        onChange={(e) => setFormData({...formData, formato_reunion: e.target.value})}
                       >
                         <option value="">Selecciona formato...</option>
                         <option value="Presencial en Stand">Presencial en Stand</option>
@@ -279,9 +415,72 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full rounded-lg gap-2 mt-4 font-semibold">
-                  Guardar Perfil y Ver Matches
-                  <ArrowRight className="h-4 w-4" />
+                <Separator />
+
+                {/* 4. Enlaces & Resumen Ejecutivo */}
+                <div className="space-y-3">
+                  <span className="text-xs font-semibold text-foreground block">
+                    4. Presencia Digital & Pitch
+                  </span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                        Perfil de LinkedIn (URL)
+                      </label>
+                      <Input
+                        type="url"
+                        placeholder="https://linkedin.com/in/usuario"
+                        className="h-9 text-xs"
+                        value={formData.perfil_linkedin}
+                        onChange={(e) => setFormData({ ...formData, perfil_linkedin: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                        Sitio Web / Portfolio (URL)
+                      </label>
+                      <Input
+                        type="url"
+                        placeholder="https://tuempresa.com"
+                        className="h-9 text-xs"
+                        value={formData.sitio_web}
+                        onChange={(e) => setFormData({ ...formData, sitio_web: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                      Resumen Ejecutivo / Pitch Corto
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="Breve descripción de lo que hace tu empresa o tu especialidad comercial..."
+                      className="w-full rounded-md border border-input bg-background p-2.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                      value={formData.resumen_ejecutivo}
+                      onChange={(e) => setFormData({ ...formData, resumen_ejecutivo: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className="w-full rounded-lg gap-2 mt-4 font-semibold"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Guardando Perfil...
+                    </>
+                  ) : (
+                    <>
+                      Guardar Perfil y Ver Matches
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               </form>
             </CardContent>
@@ -444,7 +643,6 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                     />
                   </div>
 
-                  {/* Botón de Filtro compacto con badge dinámico */}
                   <Button
                     variant={activeFiltersCount > 0 ? "default" : "outline"}
                     className="h-10 px-3.5 rounded-xl gap-2 shrink-0 text-xs font-semibold"
@@ -544,7 +742,7 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                         </div>
                       </div>
 
-                      {/* Botones de Acción dentro del Modal */}
+                      {/* Botones del Modal */}
                       <div className="flex items-center gap-2 pt-2 border-t border-border">
                         {activeFiltersCount > 0 && (
                           <Button 
@@ -664,10 +862,13 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                     })}
                   </div>
                 )}
+
               </div>
             )}
+
           </div>
         )}
+
       </main>
     </PlatformLayout>
   );
