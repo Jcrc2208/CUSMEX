@@ -28,6 +28,7 @@ export default function Login({
   const roleMenuRef = useRef(null);
 
   const t = COPY[language] ?? COPY.es;
+  const currentRoles = t.roles || COPY['es'].roles;
   const features = useMemo(() => getFeatures(language), [language]);
   const roleConfig = t.roles[accessRole] ?? t.roles.gobierno;
 
@@ -185,7 +186,7 @@ const handlePasswordReset = async (email) => {
                             setIsRoleOpen(false);
                           }}
                         >
-                          {t.roles.gobierno.title}
+                          {currentRoles.gobierno.title}
                         </button>
                         <button
                           type="button"
@@ -195,7 +196,7 @@ const handlePasswordReset = async (email) => {
                             setIsRoleOpen(false);
                           }}
                         >
-                          {t.roles.empresas.title}
+                          {currentRoles.empresas.title}
                         </button>
                         <button
                           type="button"
@@ -205,7 +206,7 @@ const handlePasswordReset = async (email) => {
                             setIsRoleOpen(false);
                           }}
                         >
-                          {t.roles.patrocinador.title}
+                          {currentRoles.patrocinador.title}
                         </button>
                         <button
                           type="button"
@@ -215,7 +216,7 @@ const handlePasswordReset = async (email) => {
                             setIsRoleOpen(false);
                           }}
                         >
-                          {t.roles.admin.title}
+                          {currentRoles.admin.title}
                         </button>                        
                       </div>
                     )}

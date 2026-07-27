@@ -100,7 +100,16 @@ export default function App() {
   if (route.moduleId === 'networking') {
     return <Networking {...sharedProps} />;
   }
+  
   if (route.moduleId === 'sponsors') {
+    const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
+    
+    // Si no es patrocinador ni administrador, lo regresamos a Inicio por seguridad
+    if (userRole !== 'patrocinador' && userRole !== 'admin' && userRole !== 'administrador') {
+      return <Inicio {...sharedProps} />; 
+    }
+    
+    // Si sí tiene permiso, cargamos el módulo
     return <Sponsors {...sharedProps} />;
   }
 

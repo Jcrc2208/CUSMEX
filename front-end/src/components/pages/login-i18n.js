@@ -17,7 +17,7 @@ const PLATFORM_MODULES = [
   { id: 'networking', icon: Handshake },
   { id: 'agenda', icon: CalendarDays },
   { id: 'comites', icon: Landmark },
-  { id: 'sponsors', icon: ShieldCheck },
+  { id: 'sponsors', icon: ShieldCheck, sponsorOrAdminOnly: true },
   { id: 'administracion', icon: Settings, adminOnly: true },
   { id: 'auth', icon: ShieldCheck }
 ];
@@ -886,7 +886,10 @@ export const COPY = {
 };
 
 export function getFeatures(lang) {
-  return COPY[lang].features.map((feature) => ({
+  
+  const safeFeatures = COPY[lang]?.features || COPY['es'].features;
+  
+  return safeFeatures.map((feature) => ({
     ...feature,
     icon: FEATURE_ICONS[feature.id],
   }));
