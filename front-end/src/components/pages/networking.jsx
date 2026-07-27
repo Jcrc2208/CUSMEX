@@ -14,7 +14,6 @@ import {
   X,
   Filter,
   Loader2,
-  Linkedin,
   Globe
 } from 'lucide-react';
 
@@ -487,6 +486,8 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
           </Card>
         ) : (
 
+
+          
         /* ------------------------------------------------------------- */
         /* PASO 2: VISTAS CON PESTAÑAS (IA vs BÚSQUEDA LIBRE)            */
         /* ------------------------------------------------------------- */

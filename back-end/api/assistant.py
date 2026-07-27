@@ -18,5 +18,5 @@ class AssistantManager:
         if id in self.assistants:
             del self.assistants[id]
 
-def list_assistants(self):
-    return list(self.assistants.values())
+
+
