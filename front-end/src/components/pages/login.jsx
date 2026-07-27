@@ -21,6 +21,10 @@ export default function Login({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // se valida el inicio de olvidar contraseña en  el login pero aun queda validar con victor rosales
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+
   const roleMenuRef = useRef(null);
 
   const t = COPY[language] ?? COPY.es;
@@ -86,6 +90,25 @@ export default function Login({
       setIsLoading(false);
     }
   }
+
+
+// se valida el inicio de olvidar contraseña en  el login pero aun queda validar con victor rosales
+const handlePasswordReset = async (email) => {
+  try {
+    const response = await fetch("/api/v1/auth/forgot-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+    const data = await response.json();
+    // Muestras un mensaje de éxito al usuario
+  } catch (error) {
+    // Manejo de errores
+  }
+};
+
 
   return (
     <PlatformLayout
@@ -225,19 +248,47 @@ export default function Login({
                     required
                   />
                 </div>
+             <Button type="submit" className="rounded-full" disabled={isLoading}>
+               {isLoading ? '...' : t.enter}
+              </Button>
+             <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <a 
 
-                <Button type="submit" className="rounded-full" disabled={isLoading}>
-                  {isLoading ? '...' : t.enter}
-                </Button>
 
-                <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
-                  <a href="#forgot" className="text-muted-foreground hover:text-primary">
-                    {t.forgotPassword}
-                  </a>
-                  <a href="#signup" className="text-muted-foreground hover:text-primary">
-                    {t.requestAccess}
-                  </a>
-                </div>
+
+  href="#forgot" 
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("¡Click detectado en Olvidé mi contraseña!");
+    
+    const email = prompt("Ingresa tu correo para recuperar contraseña:");
+    if (!email) return;
+
+    fetch("/api/v1/auth/forgot-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        console.log("Respuesta del backend:", data);
+        alert(data.message || "¡Listo!");
+      })
+      .catch((err) => {
+        console.error("Error en la petición:", err);
+      });
+  }} 
+  className="text-muted-foreground hover:text-primary cursor-pointer"
+>
+  {t.forgotPassword}
+</a>
+
+
+
+              </div>
               </form>
             </CardContent>
           </Card>

@@ -5,8 +5,13 @@ from sqlalchemy import Column, Integer, String
 from pydantic import BaseModel
 import bcrypt
 from groq import Groq 
+from pydantic import BaseModel, EmailStr
 
 from database import get_db, engine, Base
+
+
+class ForgotPasswordSchema(BaseModel):
+ email: EmailStr
 
 # 1. Definición del Modelo
 class Usuario(Base):
@@ -120,7 +125,6 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             "role": db_user.Rol
         }
     }
-
 # 6. Endpoint de Chat con IA (Groq)
 @app.post("/api/chat")
 async def chat_with_ai(data: ChatRequest):
@@ -148,3 +152,12 @@ async def chat_with_ai(data: ChatRequest):
     except Exception as e:
         print("Error en el cliente de Groq:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+# se valida el inicio de olvidar contraseña en  el login pero aun queda validar con victor rosales
+@app.post("/api/v1/auth/forgot-password")
+async def forgot_password(data: ForgotPasswordSchema):
+         #logica para verificar si el coreeo existe 
+          return {"message": "si el correo esta registrado ,se ha enviado las intrucciones."}
+    
