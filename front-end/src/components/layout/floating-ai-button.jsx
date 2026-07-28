@@ -41,8 +41,19 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const messagesEndRef = useRef(null); // Referencia para el autoscroll
 
-  // Función para reproducir audio de la IA (si el backend lo soporta mediante TTS)
+  // Función para hacer scroll hacia abajo automáticamente
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Se ejecuta cada vez que cambia el arreglo de mensajes
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Función para reproducir audio de la IA
   const speakText = (text) => {
     if (!soundEnabled || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
@@ -60,7 +71,6 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
     };
   }, []);
 
-  // Procesamiento de texto general
   const processAndSendText = async (textToSend) => {
     if (!textToSend.trim() || isLoading) return;
 
@@ -86,8 +96,8 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
       await new Promise((resolve) => setTimeout(resolve, 800));
       aiReplyText =
         language === 'en'
-          ? 'Processing your request... I can help you locate sessions, speakers, and stands in real time.'
-          : 'Procesando tu solicitud... Puedo ayudarte a ubicar sesiones, ponentes y stands en tiempo real.';
+          ? 'Processing your request...'
+          : 'Procesando tu solicitud...';
     }
 
     const aiReply = {
@@ -110,7 +120,6 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
     await processAndSendText(inputValue);
   };
 
-  // Grabación de nota de voz tipo WhatsApp para enviar a FastAPI
   const startRecording = async () => {
     audioChunksRef.current = [];
     try {
@@ -161,10 +170,10 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
       formData.append("file", audioBlob, "voice_message.webm");
       formData.append("language", language);
 
-     const response = await fetch("/api/voice-assistant", {
-     method: "POST",
-     body: formData,
-     });
+      const response = await fetch("/api/voice-assistant", {
+        method: "POST",
+        body: formData,
+      });
 
       if (!response.ok) throw new Error("Error en el servidor de voz");
 
@@ -189,7 +198,6 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
 
     } catch (error) {
       console.error("Error procesando nota de voz con el backend:", error);
-      // Fallback local si el endpoint de voz aún no está activo en FastAPI
       const fallbackMsg = {
         id: Date.now(),
         sender: 'ai',
@@ -240,7 +248,6 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
                   }
                 }}
                 className="text-muted-foreground hover:text-foreground h-8 w-8"
-                title={soundEnabled ? 'Silenciar voz de la IA' : 'Activar voz de la IA'}
               >
                 {soundEnabled ? <Volume2 className="h-4 w-4 text-primary" /> : <VolumeX className="h-4 w-4" />}
               </Button>
@@ -251,7 +258,6 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
                 size="icon-sm"
                 onClick={handleReset}
                 className="text-muted-foreground hover:text-foreground h-8 w-8"
-                title={copy?.clearHistory || 'Reiniciar conversación'}
               >
                 <RefreshCw className="h-4 w-4" />
               </Button>
@@ -323,6 +329,9 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
                 <span>Grabando nota de voz... (Haz clic de nuevo para enviar)</span>
               </div>
             )}
+            
+            {/* Ancla para el autoscroll */}
+            <div ref={messagesEndRef} />
           </CardContent>
 
           <div className="p-3 sm:p-4 border-t border-border bg-card shrink-0">
@@ -349,7 +358,6 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
                 className={`rounded-xl h-10 sm:h-9 w-10 sm:w-9 p-0 shrink-0 ${
                   isRecording ? 'animate-bounce bg-red-500 text-white' : ''
                 }`}
-                title={isRecording ? 'Detener y enviar audio' : 'Grabar nota de voz'}
               >
                 {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
               </Button>
