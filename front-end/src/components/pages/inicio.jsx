@@ -138,7 +138,10 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
 
               <div className="bg-muted/30 p-2.5 rounded-lg border border-border/40">
                 <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Membresía</p>
-                <p className="font-semibold text-amber-500 text-xs sm:text-sm mt-0.5 truncate">{user.estatusMembresia}</p>
+                <p className="font-semibold text-red-600 text-xs sm:text-sm mt-0.5 truncate">
+  {user.estatusMembresia}
+</p>
+
               </div>
             </div>
           </div>
@@ -203,7 +206,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
           <Card className="border border-border bg-card shadow-sm">
             <CardContent className="p-3.5 sm:p-5 space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-border/60">
-                <Vote className="w-4 h-4 text-amber-500 shrink-0" />
+                <Vote className="w-4 h-4 text-[#D80621] shrink-0" />
                 <h3 className="text-sm sm:text-base font-bold text-foreground">
                   Alertas de Votación
                 </h3>
@@ -214,19 +217,19 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
                   {votacionesActivas.map((votacion) => (
                     <div
                       key={votacion.id}
-                      className="p-3 rounded-lg border border-amber-500/20 bg-amber-500/5 space-y-2"
+                      className="p-3 rounded-lg border text-[#D80621], text-[#D80621] space-y-2"
                     >
                       <h4 className="font-bold text-xs text-foreground leading-snug">
                         {votacion.titulo}
                       </h4>
-                      <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                      <p className="text-[11px] text-[#D80621], text-[#D80621] font-medium">
                         {votacion.fecha_cierre}
                       </p>
                       {votacion.puedeParticipar ? (
                         <button
                           type="button"
                           onClick={() => navigateToModule('votaciones')}
-                          className="w-full py-2 px-3 rounded-md bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white text-xs font-bold transition-all text-center shadow-sm"
+                          className="w-full py-2 px-3 rounded-md  text-[#D80621], text-white text-xs font-bold transition-all text-center shadow-sm"
                         >
                           Emitir Voto Ahora
                         </button>

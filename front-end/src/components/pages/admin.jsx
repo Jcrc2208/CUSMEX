@@ -192,7 +192,7 @@ function UsersManager() {
                           {u.rol_nombre}
                         </span>
                         <div>
-                          <span className={`text-[10px] uppercase font-bold ${u.estatus_membresia === 'activo' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                          <span className={`text-[10px] uppercase font-bold ${u.estatus_membresia === 'activo' ? 'text-emerald-600' : 'text-[#D80621]'}`}>
                             • {u.estatus_membresia}
                           </span>
                         </div>
@@ -403,7 +403,7 @@ function VotingManager() {
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-semibold text-xs sm:text-sm">{v.titulo}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-md font-medium uppercase ${v.estatus === 'activa' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'}`}>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-md font-medium uppercase ${v.estatus === 'activa' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-[#D80621]'}`}>
                     {v.estatus}
                   </span>
                   {v.es_secreta && (
