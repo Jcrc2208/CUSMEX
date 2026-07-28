@@ -9,9 +9,20 @@ import {
   ShieldCheck,
   Sparkles,
   Users,
+  UserCog
 } from 'lucide-react';
 
+// Map of icons for getFeatures()
+export const FEATURE_ICONS = {
+  'usuarios-roles': Users,
+  'portal-participante': UserCog,
+  'agenda': CalendarDays,
+  'matchmaking': Handshake,
+  'traduccion': Languages,
+};
+
 const PLATFORM_MODULES = [
+  { id: 'confi_user', icon: UserCog },
   { id: 'inicio', icon: LayoutDashboard },
   { id: 'participantes', icon: Users },
   { id: 'networking', icon: Handshake },
@@ -25,7 +36,7 @@ const PLATFORM_MODULES = [
 function buildModules(labels) {
   return PLATFORM_MODULES.map((module) => ({
     ...module,
-    label: labels[module.id],
+    label: labels[module.id] || module.id,
     href: `#${module.id}`,
   }));
 }
@@ -51,15 +62,6 @@ export function applyLanguage(code) {
   document.documentElement.lang = code;
   window.localStorage.setItem(LANGUAGE_STORAGE_KEY, code);
 }
-
-const FEATURE_ICONS = {
-  'usuarios-roles': Users,
-  'portal-participante': LayoutDashboard,
-  'asistente-ia': Sparkles,
-  agenda: CalendarDays,  
-  matchmaking: Handshake,
-  traduccion: Languages,
-};
 
 export const COPY = {
   es: {
@@ -112,7 +114,7 @@ export const COPY = {
         'Comités y miembros',
         'Documentos y votaciones',
         'Responsabilidades',
-      ],      
+      ],     
       administracion: [        
         'Usuarios, roles y permisos',
         'Configuración y patrocinadores',
@@ -120,6 +122,7 @@ export const COPY = {
       ],
     },
     moduleLabels: {
+      confi_user: 'Configuración Inicial',
       inicio: 'Inicio',
       participantes: 'Participantes',
       networking: 'Networking',
@@ -130,6 +133,7 @@ export const COPY = {
       auth: 'Autenticación y Control de Acceso',
     },
     modules: buildModules({
+      confi_user: 'Configuración Inicial',
       inicio: 'Inicio',
       participantes: 'Participantes',
       networking: 'Networking',
@@ -164,7 +168,7 @@ export const COPY = {
         title: 'Accesos rápidos',
         items: [
           { id: 'agenda', label: 'Ver agenda del evento', hint: 'Sesiones, salas y ponentes' },
-          { id: 'networking', label: 'Explorar matchmaking', hint: 'Empresas y solicitudes' },          
+          { id: 'networking', label: 'Explorar matchmaking', hint: 'Empresas y solicitudes' },         
         ],
       },
       upcomingMeetings: {
@@ -330,7 +334,7 @@ export const COPY = {
         title: 'Acceso Patrocinador',
         description: 'Para aliados estratégicos, sponsors y partners oficiales del evento.',
         placeholder: 'patrocinador@dominio.com',
-      },      
+      },     
       admin: {
         title: 'Administrador',
         description: 'Gestiona cuentas, roles institucionales, auditoría y la configuración general de Nexus.',
@@ -449,7 +453,7 @@ export const COPY = {
         'Meetings, rooms, and speakers',
         'Integrated calendar',
       ],
-      comites: ['Committees and members', 'Documents and voting', 'Responsibilities'],      
+      comites: ['Committees and members', 'Documents and voting', 'Responsibilities'],     
       administracion: [
         'Users, roles, and permissions',
         'Configuration and sponsors',
@@ -457,6 +461,7 @@ export const COPY = {
       ],
     },
     moduleLabels: {
+      confi_user: 'Initial Setup',
       inicio: 'Home',
       participantes: 'Participants',
       networking: 'Networking',
@@ -467,6 +472,7 @@ export const COPY = {
       auth: 'Authentication and Access Control',
     },
     modules: buildModules({
+      confi_user: 'Initial Setup',
       inicio: 'Home',
       participantes: 'Participants',
       networking: 'Networking',
@@ -501,7 +507,7 @@ export const COPY = {
         title: 'Quick access',
         items: [
           { id: 'agenda', label: 'View event agenda', hint: 'Sessions, rooms, and speakers' },
-          { id: 'networking', label: 'Explore matchmaking', hint: 'Companies and requests' },          
+          { id: 'networking', label: 'Explore matchmaking', hint: 'Companies and requests' },         
         ],
       },
       upcomingMeetings: {
@@ -662,7 +668,7 @@ export const COPY = {
         description:
           'Sign in to coordinate networking, meetings, and your presence at the Oakland Assembly.',
         placeholder: 'company@domain.com',
-      },      
+      },     
       patrocinador: {
         title: 'Sponsor Access',
         description: 'For strategic allies, sponsors, and official event partners.',
@@ -725,7 +731,7 @@ export const COPY = {
         title: 'Agenda System',
         description:
           'General, committee, user, sponsor, and admin agendas with rooms, schedules, speakers, and real-time notifications.',
-      },      
+      },     
       {
         id: 'matchmaking',
         title: 'Business Matchmaking',
@@ -786,7 +792,7 @@ export const COPY = {
         'Réunions, salles et intervenants',
         'Calendrier intégré',
       ],
-      comites: ['Comités et membres', 'Documents et votes', 'Responsabilités'],      
+      comites: ['Comités et membres', 'Documents et votes', 'Responsabilités'],     
       administracion: [
         'Utilisateurs, rôles et permissions',
         'Configuration et sponsors',
@@ -794,6 +800,7 @@ export const COPY = {
       ],
     },
     moduleLabels: {
+      confi_user: 'Configuration Initial',
       inicio: 'Accueil',
       participantes: 'Participants',
       networking: 'Networking',
@@ -804,6 +811,7 @@ export const COPY = {
       auth: 'Authentification et contrôle d’accès',
     },
     modules: buildModules({
+      confi_user: 'Configuration Initial',
       inicio: 'Accueil',
       participantes: 'Participants',
       networking: 'Networking',
@@ -838,7 +846,7 @@ export const COPY = {
         title: 'Accès rapides',
         items: [
           { id: 'agenda', label: 'Voir l’agenda', hint: 'Sessions, salles et intervenants' },
-          { id: 'networking', label: 'Explorer le matchmaking', hint: 'Entreprises et demandes' },          
+          { id: 'networking', label: 'Explorer le matchmaking', hint: 'Entreprises et demandes' },         
         ],
       },
       upcomingMeetings: {
@@ -886,7 +894,6 @@ export const COPY = {
 };
 
 export function getFeatures(lang) {
-  
   const safeFeatures = COPY[lang]?.features || COPY['es'].features;
   
   return safeFeatures.map((feature) => ({
