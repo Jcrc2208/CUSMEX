@@ -178,9 +178,10 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
     setFilterFormat('');
   };
 
+  //Cambio de color match %
   const getMatchBadgeStyle = (percentage) => {
     if (percentage >= 90) {
-      return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
+      return 'bg-[#D80621]/10 text-[#D80621] border border-[#D80621]/30';
     }
     if (percentage >= 80) {
       return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30';
@@ -203,10 +204,6 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
         {/* Header del Módulo */}
         <header className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 border border-blue-200 dark:border-blue-800 px-3.5 py-1 text-xs font-semibold shadow-sm">
-              Networking
-            </span>
-            
             {isProfileComplete && (
               <Button 
                 variant="outline" 
@@ -323,12 +320,12 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                           </div>
 
                           <div className="pt-1">
-                            <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-1.5">
+                            <span className="text-[11px] font-semibold text-[#D80621] uppercase tracking-wider block mb-1.5">
                               Busca
                             </span>
                             <div className="flex flex-wrap gap-1.5">
                               {profile.lookingFor.map((tag) => (
-                                <span key={tag} className="rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 text-[11px] font-medium border border-emerald-200 dark:border-emerald-800">
+                                <span key={tag} className="rounded-md bg-[#D80621]/10 text-[#D80621] px-2 py-0.5 text-[11px] font-medium border border-[#D80621]/20">
                                   {tag}
                                 </span>
                               ))}
@@ -518,9 +515,7 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                         <Card key={profile.id} className="flex flex-col justify-between border-border hover:border-primary/40 transition-all shadow-sm">
                           <CardHeader className="p-5 pb-3 space-y-3">
                             <div className="flex items-center justify-between gap-2">
-                              <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold border ${getMatchBadgeStyle(profile.matchPercentage)}`}>
-                                {profile.matchPercentage}% Match
-                              </span>
+                              
 
                               {profile.cvUrl && (
                                 <Button variant="outline" size="xs" className="text-[11px] text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/50 h-7 gap-1 font-medium">
@@ -560,12 +555,14 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                               </div>
 
                               <div className="pt-1">
-                                <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-1.5">
+                                
+                                <span className="text-[11px] font-semibold text-[#D80621] uppercase tracking-wider block mb-1.5">
                                   Busca
                                 </span>
                                 <div className="flex flex-wrap gap-1.5">
                                   {profile.lookingFor.map((tag) => (
-                                    <span key={tag} className="rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 text-[11px] font-medium border border-emerald-200 dark:border-emerald-800">
+                                  
+                                    <span key={tag} className="rounded-md bg-[#D80621]/10 text-[#D80621] px-2 py-0.5 text-[11px] font-medium border border-[#D80621]/20">
                                       {tag}
                                     </span>
                                   ))}

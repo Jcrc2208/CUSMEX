@@ -31,7 +31,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
     rol: 'Delegado Titular',
     organizacion: 'Cámara de Comercio e Industria',
     pais: 'México',
-    estatusMembresia: 'Activa (Platinum)',
+    estatusMembresia: 'Activa',
     es_elegible_para_votar: true,
   };
 
@@ -137,7 +137,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
               </div>
 
               <div className="bg-muted/30 p-2.5 rounded-lg border border-border/40">
-                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Membresía</p>
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Estatus</p>
                 <p className="font-semibold text-red-600 text-xs sm:text-sm mt-0.5 truncate">
   {user.estatusMembresia}
 </p>

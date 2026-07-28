@@ -13,8 +13,16 @@ import {
   ShieldAlert,
   CheckCircle2,
   Filter,
-  Check
+  Check,
+  UserX,
+  Key,
+  Lock,
+  Copy,
+  RefreshCw,
+  Mail,
+  Send
 } from 'lucide-react';
+
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,9 +42,12 @@ function UsersManager() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [activeUserMenu, setActiveUserMenu] = useState(null);
 
-  // Estados de Filtro Avanzado
-  const [statusFilter, setStatusFilter] = useState('todos');
+  // Estados de Filtros Avanzados (Punto 2)
+  const [roleFilter, setRoleFilter] = useState('todos');
+  const [countryFilter, setCountryFilter] = useState('todos');
+  const [languageFilter, setLanguageFilter] = useState('todos');
   const [voteFilter, setVoteFilter] = useState('todos');
 
   const [newUser, setNewUser] = useState({
@@ -59,6 +70,7 @@ function UsersManager() {
       apellido: 'Martínez',
       email: 'elena.m@empresa.com',
       pais: 'México',
+      idioma_preferido: 'es',
       estatus_membresia: 'activo',
       es_elegible_para_votar: true,
       rol_nombre: 'Delegado',
@@ -70,6 +82,7 @@ function UsersManager() {
       apellido: 'Ruiz',
       email: 'carlos.ruiz@natp.org',
       pais: 'EE.UU.',
+      idioma_preferido: 'en',
       estatus_membresia: 'activo',
       es_elegible_para_votar: false,
       rol_nombre: 'Administrador',
@@ -81,12 +94,25 @@ function UsersManager() {
       apellido: 'Gómez',
       email: 'sgomez@tech.io',
       pais: 'Canadá',
+      idioma_preferido: 'fr',
       estatus_membresia: 'inactivo',
       es_elegible_para_votar: false,
       rol_nombre: 'Observador',
       organizacion_nombre: 'Tech Trade Global'
     }
   ]);
+
+  // Función para dar de baja o reactivar usuario
+  const handleToggleUserStatus = (userId) => {
+    setUsersList(prev => prev.map(u => {
+      if (u.id === userId) {
+        const newStatus = u.estatus_membresia === 'activo' ? 'inactivo' : 'activo';
+        return { ...u, estatus_membresia: newStatus };
+      }
+      return u;
+    }));
+    setActiveUserMenu(null);
+  };
 
   const handleCreateUser = (e) => {
     e.preventDefault();
@@ -116,6 +142,20 @@ function UsersManager() {
     });
   };
 
+  const resetFilters = () => {
+    setRoleFilter('todos');
+    setCountryFilter('todos');
+    setLanguageFilter('todos');
+    setVoteFilter('todos');
+  };
+
+  const activeFiltersCount = [
+    roleFilter !== 'todos',
+    countryFilter !== 'todos',
+    languageFilter !== 'todos',
+    voteFilter !== 'todos'
+  ].filter(Boolean).length;
+
   const filteredUsers = usersList.filter(user => {
     const query = searchQuery.toLowerCase();
     const matchesSearch = (
@@ -126,13 +166,15 @@ function UsersManager() {
       user.organizacion_nombre.toLowerCase().includes(query)
     );
 
-    const matchesStatus = statusFilter === 'todos' || user.estatus_membresia === statusFilter;
+    const matchesRole = roleFilter === 'todos' || user.rol_nombre.toLowerCase() === roleFilter.toLowerCase();
+    const matchesCountry = countryFilter === 'todos' || user.pais.toLowerCase() === countryFilter.toLowerCase();
+    const matchesLanguage = languageFilter === 'todos' || user.idioma_preferido === languageFilter;
     const matchesVote =
       voteFilter === 'todos' ||
       (voteFilter === 'elegibles' && user.es_elegible_para_votar) ||
       (voteFilter === 'no_elegibles' && !user.es_elegible_para_votar);
 
-    return matchesSearch && matchesStatus && matchesVote;
+    return matchesSearch && matchesRole && matchesCountry && matchesLanguage && matchesVote;
   });
 
   return (
@@ -150,7 +192,105 @@ function UsersManager() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+
+          {/* Botón de Filtrado Avanzado */}
+          <div className="relative">
+            <Button
+              variant={activeFiltersCount > 0 ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowFilterMenu(!showFilterMenu)}
+              className="gap-1.5 text-xs shrink-0 relative"
+            >
+              <Filter className="h-3.5 w-3.5" />
+              <span>Filtros</span>
+              {activeFiltersCount > 0 && (
+                <span className="ml-1 bg-background text-foreground rounded-full w-4 h-4 text-[10px] flex items-center justify-center font-bold">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </Button>
+
+            {/* Menú Flotante de Filtros */}
+            {showFilterMenu && (
+              <div className="absolute right-0 sm:left-0 top-full mt-2 w-72 bg-popover text-popover-foreground border rounded-md shadow-lg p-3 z-30 text-xs space-y-3">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <span className="font-semibold">Filtrar Usuarios</span>
+                  {activeFiltersCount > 0 && (
+                    <button onClick={resetFilters} className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline">
+                      Limpiar todo
+                    </button>
+                  )}
+                </div>
+
+                {/* Filtro por Rol */}
+                <div>
+                  <label className="font-medium block mb-1 text-[11px] text-muted-foreground">Rol</label>
+                  <select
+                    className="w-full border rounded-md p-1.5 bg-background text-xs"
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value)}
+                  >
+                    <option value="todos">Todos los roles</option>
+                    <option value="Delegado">Delegado</option>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Observador">Observador</option>
+                  </select>
+                </div>
+
+                {/* Filtro por País */}
+                <div>
+                  <label className="font-medium block mb-1 text-[11px] text-muted-foreground">País</label>
+                  <select
+                    className="w-full border rounded-md p-1.5 bg-background text-xs"
+                    value={countryFilter}
+                    onChange={(e) => setCountryFilter(e.target.value)}
+                  >
+                    <option value="todos">Todos los países</option>
+                    <option value="México">México</option>
+                    <option value="EE.UU.">EE.UU.</option>
+                    <option value="Canadá">Canadá</option>
+                  </select>
+                </div>
+
+                {/* Filtro por Idioma Preferido */}
+                <div>
+                  <label className="font-medium block mb-1 text-[11px] text-muted-foreground">Idioma Preferido</label>
+                  <select
+                    className="w-full border rounded-md p-1.5 bg-background text-xs"
+                    value={languageFilter}
+                    onChange={(e) => setLanguageFilter(e.target.value)}
+                  >
+                    <option value="todos">Todos los idiomas</option>
+                    <option value="es">Español (es)</option>
+                    <option value="en">Inglés (en)</option>
+                    <option value="fr">Francés (fr)</option>
+                  </select>
+                </div>
+
+                {/* Filtro por Elegible para Votar */}
+                <div>
+                  <label className="font-medium block mb-1 text-[11px] text-muted-foreground">Puede Votar</label>
+                  <select
+                    className="w-full border rounded-md p-1.5 bg-background text-xs"
+                    value={voteFilter}
+                    onChange={(e) => setVoteFilter(e.target.value)}
+                  >
+                    <option value="todos">Todos</option>
+                    <option value="elegibles">Sí (Elegibles)</option>
+                    <option value="no_elegibles">No (No elegibles)</option>
+                  </select>
+                </div>
+
+                <div className="pt-1 flex justify-end">
+                  <Button size="sm" className="w-full h-7 text-xs" onClick={() => setShowFilterMenu(false)}>
+                    Aplicar Filtros
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+
         <Button size="sm" onClick={() => setShowAddModal(true)} className="gap-1.5 text-xs w-full sm:w-auto shrink-0">
           <Plus className="h-4 w-4" /> Nuevo Usuario
         </Button>
@@ -185,7 +325,7 @@ function UsersManager() {
                       </td>
                       <td className="p-3">
                         <p className="font-medium">{u.organizacion_nombre}</p>
-                        <p className="text-[11px] text-muted-foreground">{u.pais}</p>
+                        <p className="text-[11px] text-muted-foreground">{u.pais} • Idioma: {u.idioma_preferido.toUpperCase()}</p>
                       </td>
                       <td className="p-3 space-y-1">
                         <span className="inline-block bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-medium">
@@ -206,10 +346,27 @@ function UsersManager() {
                           <span className="text-muted-foreground text-[11px]">No</span>
                         )}
                       </td>
-                      <td className="p-3 text-right">
-                        <Button variant="ghost" size="icon-sm">
+                      <td className="p-3 text-right relative">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => setActiveUserMenu(activeUserMenu === u.id ? null : u.id)}
+                        >
                           <MoreVertical className="h-4 w-4 text-muted-foreground" />
                         </Button>
+
+                        {/* Menú de Acciones */}
+                        {activeUserMenu === u.id && (
+                          <div className="absolute right-3 top-10 w-44 bg-popover text-popover-foreground border rounded-md shadow-lg p-1 z-30 text-left">
+                            <button
+                              onClick={() => handleToggleUserStatus(u.id)}
+                              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-muted rounded-sm transition-colors"
+                            >
+                              <UserX className="h-3.5 w-3.5" />
+                              <span>{u.estatus_membresia === 'activo' ? 'Dar de baja' : 'Reactivar usuario'}</span>
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -331,7 +488,350 @@ function UsersManager() {
   );
 }
 
-// --- 2. SUBCOMPONENTE: VOTACIONES ---
+// --- 2. SUBCOMPONENTE: GENERADOR DE TOKENS ---
+function TokenGeneratorManager() {
+  const [generatedToken, setGeneratedToken] = useState('');
+  const [selectedRoleForToken, setSelectedRoleForToken] = useState('');
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('Delegado');
+
+  const [tokenList, setTokenList] = useState([
+    { token: 'CUSMEX-8F92-A109', rol: 'Delegado', fecha: '2026-07-28', estado: 'Disponible' },
+    { token: 'CUSMEX-3K44-D806', rol: 'Administrador', fecha: '2026-07-27', estado: 'Usado' }
+  ]);
+
+  // Se abre el modal de selección de rol
+  const handleOpenRoleModal = () => {
+    setShowRoleModal(true);
+  };
+
+  // Confirmación y generación final del token con el rol asignado
+  const handleConfirmTokenGeneration = (e) => {
+    e.preventDefault();
+    const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const randomHex2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const newToken = `CUSMEX-${randomHex}-${randomHex2}`;
+
+    setGeneratedToken(newToken);
+    setSelectedRoleForToken(selectedRole);
+    setCopied(false);
+
+    setTokenList([
+      { 
+        token: newToken, 
+        rol: selectedRole, 
+        fecha: new Date().toISOString().split('T')[0], 
+        estado: 'Disponible' 
+      },
+      ...tokenList
+    ]);
+
+    setShowRoleModal(false);
+  };
+
+  const handleCopy = () => {
+    if (!generatedToken) return;
+    navigator.clipboard.writeText(generatedToken);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in-0 duration-500">
+      <div>
+        <h3 className="text-base sm:text-lg font-semibold">Generador de Tokens de Acceso Primer Ingreso</h3>
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          Genera pases/tokens únicos asignados a un rol para que nuevos usuarios inicien sesión por primera vez.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader className="p-4 sm:p-6 pb-2">
+          <CardTitle className="text-base">Emisión de Token</CardTitle>
+          <CardDescription className="text-xs">
+            Haz clic en el botón para seleccionar un rol y crear un nuevo token válido para el registro inicial.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6 pt-2 space-y-4">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <Button onClick={handleOpenRoleModal} className="gap-2 text-xs w-full sm:w-auto">
+              <Key className="h-4 w-4" /> Generar Token
+            </Button>
+
+            {generatedToken && (
+              <div className="flex items-center gap-2 w-full sm:w-auto bg-muted p-2 rounded-md border text-xs">
+                <span className="font-mono font-bold text-foreground tracking-wider">{generatedToken}</span>
+                <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-medium">
+                  {selectedRoleForToken}
+                </span>
+                <Button variant="ghost" size="icon-sm" onClick={handleCopy}>
+                  {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-4 border-t">
+            <h4 className="text-xs font-semibold mb-3">Historial Reciente de Tokens Generados</h4>
+            <div className="overflow-x-auto border rounded-md">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-muted/50 text-muted-foreground font-semibold">
+                  <tr>
+                    <th className="p-2.5">Token</th>
+                    <th className="p-2.5">Rol Asignado</th>
+                    <th className="p-2.5">Fecha Generación</th>
+                    <th className="p-2.5">Estado</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {tokenList.map((t, idx) => (
+                    <tr key={idx} className="hover:bg-muted/20">
+                      <td className="p-2.5 font-mono font-semibold">{t.token}</td>
+                      <td className="p-2.5">
+                        <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-medium">
+                          {t.rol}
+                        </span>
+                      </td>
+                      <td className="p-2.5 text-muted-foreground">{t.fecha}</td>
+                      <td className="p-2.5">
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${t.estado === 'Disponible' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'}`}>
+                          {t.estado}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* MODAL PARA SELECCIONAR EL ROL ANTES DE GENERAR */}
+      {showRoleModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <Card className="w-full max-w-sm animate-in zoom-in-95">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
+              <CardTitle className="text-base">Seleccionar Rol del Token</CardTitle>
+              <Button variant="ghost" size="icon-sm" onClick={() => setShowRoleModal(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <form onSubmit={handleConfirmTokenGeneration} className="space-y-4 text-xs">
+                <div>
+                  <label className="font-semibold block mb-1.5 text-muted-foreground">
+                    Elige el rol que heredará el usuario al canjear este token:
+                  </label>
+                  <select
+                    className="w-full border rounded-md p-2 bg-background text-xs"
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                  >
+                    <option value="Delegado">Delegado</option>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Observador">Observador</option>
+                    <option value="Organizador">Organizador</option>
+                  </select>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t">
+                  <Button type="button" variant="outline" onClick={() => setShowRoleModal(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="gap-1.5">
+                    <Key className="h-3.5 w-3.5" /> Generar
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}
+// --- 3. SUBCOMPONENTE: GESTIÓN DE RECOMPOSICIÓN / OLVIDÉ CONTRASEÑA ---
+function PasswordResetManager() {
+  const [requestsList, setRequestsList] = useState([
+    {
+      id: 'req-1',
+      usuario: 'elena.martinez',
+      email: 'elena.m@empresa.com',
+      fecha: '2026-07-28 10:15',
+      estado: 'Pendiente'
+    },
+    {
+      id: 'req-2',
+      usuario: 'carlos.ruiz',
+      email: 'carlos.ruiz@natp.org',
+      fecha: '2026-07-27 16:40',
+      estado: 'Atendido'
+    }
+  ]);
+
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const handleOpenResetModal = (request) => {
+    setSelectedRequest(request);
+    setNewPassword('');
+  };
+
+  const handleAssignPassword = (e) => {
+    e.preventDefault();
+    if (!newPassword || !selectedRequest) return;
+
+    // Actualizamos el estado de la solicitud a Atendido
+    setRequestsList((prev) =>
+      prev.map((item) =>
+        item.id === selectedRequest.id ? { ...item, estado: 'Atendido' } : item
+      )
+    );
+
+    setSuccessMessage(`Contraseña actualizada para el usuario ${selectedRequest.usuario}.`);
+    setSelectedRequest(null);
+    setNewPassword('');
+
+    setTimeout(() => {
+      setSuccessMessage('');
+    }, 4000);
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in-0 duration-500">
+      <div>
+        <h3 className="text-base sm:text-lg font-semibold">Solicitudes de Restablecimiento de Contraseña</h3>
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          Bandeja de peticiones enviadas por usuarios desde la pantalla de Login. Asigna una nueva contraseña manualmente.
+        </p>
+      </div>
+
+      {successMessage && (
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-md text-xs flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <span>{successMessage}</span>
+        </div>
+      )}
+
+      <Card>
+        <CardHeader className="p-4 sm:p-6 pb-3">
+          <CardTitle className="text-base">Peticiones Recibidas</CardTitle>
+          <CardDescription className="text-xs">
+            Selecciona una solicitud pendiente para definir y enviar la nueva clave de acceso.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0 sm:p-6 sm:pt-0">
+          <div className="overflow-x-auto border-t sm:border sm:rounded-md">
+            <table className="w-full text-xs text-left min-w-[500px]">
+              <thead className="bg-muted/50 text-muted-foreground font-semibold">
+                <tr>
+                  <th className="p-3">Usuario / Email</th>
+                  <th className="p-3">Fecha Petición</th>
+                  <th className="p-3">Estado</th>
+                  <th className="p-3 text-right">Acción</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {requestsList.length > 0 ? (
+                  requestsList.map((req) => (
+                    <tr key={req.id} className="hover:bg-muted/20 transition-colors">
+                      <td className="p-3">
+                        <p className="font-semibold text-foreground">{req.usuario}</p>
+                        <p className="text-[11px] text-muted-foreground">{req.email}</p>
+                      </td>
+                      <td className="p-3 text-muted-foreground">{req.fecha}</td>
+                      <td className="p-3">
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
+                            req.estado === 'Pendiente'
+                              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                              : 'bg-emerald-500/10 text-emerald-600'
+                          }`}
+                        >
+                          {req.estado}
+                        </span>
+                      </td>
+                      <td className="p-3 text-right">
+                        {req.estado === 'Pendiente' ? (
+                          <Button
+                            size="sm"
+                            className="gap-1.5 text-xs h-8"
+                            onClick={() => handleOpenResetModal(req)}
+                          >
+                            <Key className="h-3.5 w-3.5" /> Asignar Contraseña
+                          </Button>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground italic">Resuelto</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="text-center p-6 text-muted-foreground">
+                      No hay solicitudes de contraseña pendientes.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* MODAL PARA ASIGNAR CONTRASEÑA */}
+      {selectedRequest && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <Card className="w-full max-w-sm animate-in zoom-in-95">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
+              <CardTitle className="text-base">Nueva Contraseña</CardTitle>
+              <Button variant="ghost" size="icon-sm" onClick={() => setSelectedRequest(null)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <form onSubmit={handleAssignPassword} className="space-y-4 text-xs">
+                <div className="bg-muted p-2.5 rounded-md border text-[11px] space-y-0.5">
+                  <p><span className="font-semibold">Usuario:</span> {selectedRequest.usuario}</p>
+                  <p><span className="font-semibold">Correo:</span> {selectedRequest.email}</p>
+                </div>
+
+                <div>
+                  <label className="font-semibold block mb-1">Escribe la contraseña a asignar *</label>
+                  <div className="relative">
+                    <Lock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      required
+                      className="pl-9 text-xs"
+                      placeholder="Ej. Pass2026#Cusmex"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t">
+                  <Button type="button" variant="outline" onClick={() => setSelectedRequest(null)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="gap-1.5">
+                    <Send className="h-3.5 w-3.5" /> Guardar y Notificar
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- 4. SUBCOMPONENTE: VOTACIONES ---
 function VotingManager() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [votacionesList, setVotacionesList] = useState([
@@ -542,216 +1042,87 @@ function VotingManager() {
   );
 }
 
-// --- 3. SUBCOMPONENTE: MATCHMAKING Y MÉTRICAS DE PARTICIPACIÓN ---
+
+// --- 5. SUBCOMPONENTE: MATCHMAKING ---
 function MatchmakingManager() {
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Datos simulados del resumen ejecutivo de actividad por usuario
-  const [userMetrics] = useState([
-    {
-      id: 'm1',
-      nombre: 'Elena Martínez',
-      organizacion: 'Secretaría de Economía',
-      votosEmitidos: 14,
-      matchesHechos: 28,
-      matchesCancelados: 2,
-      matchesPospuestos: 5,
-      conexionesTotales: 21,
-      nivelActividad: 'Alta'
-    },
-    {
-      id: 'm2',
-      nombre: 'Carlos Ruiz',
-      organizacion: 'CUSMEX',
-      votosEmitidos: 9,
-      matchesHechos: 45,
-      matchesCancelados: 1,
-      matchesPospuestos: 3,
-      conexionesTotales: 41,
-      nivelActividad: 'Alta'
-    },
-    {
-      id: 'm3',
-      nombre: 'Sofía Gómez',
-      organizacion: 'Tech Trade Global',
-      votosEmitidos: 2,
-      matchesHechos: 8,
-      matchesCancelados: 4,
-      matchesPospuestos: 6,
-      conexionesTotales: 4,
-      nivelActividad: 'Baja'
-    }
-  ]);
-
-  const filteredMetrics = userMetrics.filter(user =>
-    user.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.organizacion.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <div className="space-y-6 animate-in fade-in-0 duration-500">
       <div>
-        <h3 className="text-base sm:text-lg font-semibold">Resumen Ejecutivo de Participación y Matchmaking</h3>
+        <h3 className="text-base sm:text-lg font-semibold">Motor de Matchmaking B2B</h3>
         <p className="text-xs sm:text-sm text-muted-foreground">
-          Métricas consolidadas sobre el nivel de interacción, votaciones y networking de los usuarios.
+          Algoritmos de emparejamiento inteligente entre delegaciones, empresas y compradores.
         </p>
       </div>
 
-      {/* TARJETAS RESUMEN DE MÉTRICAS GLOBALES */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="p-3 sm:p-4">
-          <p className="text-[11px] font-medium text-muted-foreground">Total Matches Realizados</p>
-          <p className="text-xl sm:text-2xl font-bold mt-1 text-emerald-600">81</p>
-        </Card>
-        <Card className="p-3 sm:p-4">
-          <p className="text-[11px] font-medium text-muted-foreground">Conexiones Exitosas</p>
-          <p className="text-xl sm:text-2xl font-bold mt-1 text-blue-600">66</p>
-        </Card>
-        <Card className="p-3 sm:p-4">
-          <p className="text-[11px] font-medium text-muted-foreground">Matches Pospuestos</p>
-          <p className="text-xl sm:text-2xl font-bold mt-1 text-amber-600">14</p>
-        </Card>
-        <Card className="p-3 sm:p-4">
-          <p className="text-[11px] font-medium text-muted-foreground">Matches Cancelados</p>
-          <p className="text-xl sm:text-2xl font-bold mt-1 text-rose-600">7</p>
-        </Card>
-      </div>
-
-      {/* TABLA DE USUARIOS MÁS ACTIVOS Y MÉTRICAS DETALLADAS */}
       <Card>
-        <CardHeader className="p-4 sm:p-6 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <CardTitle className="text-base">Métricas por Usuario</CardTitle>
-            <CardDescription className="text-xs">
-              Detalle de votaciones, matches y nivel de interacción en la plataforma CUSMEX.
-            </CardDescription>
-          </div>
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Buscar usuario u organización..."
-              className="pl-8 text-xs h-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+        <CardHeader className="p-4 sm:p-6 pb-2">
+          <CardTitle className="text-base">Estado del Sistema de Recomendación</CardTitle>
+          <CardDescription className="text-xs">
+            Configuración general de los criterios de vinculación comercial.
+          </CardDescription>
         </CardHeader>
-
-        <CardContent className="p-0 sm:p-6 sm:pt-0">
-          <div className="overflow-x-auto border-t sm:border sm:rounded-md">
-            <table className="w-full text-xs text-left min-w-[700px]">
-              <thead className="bg-muted/50 text-muted-foreground font-semibold">
-                <tr>
-                  <th className="p-3">Usuario / Organización</th>
-                  <th className="p-3 text-center">Votos Emitidos</th>
-                  <th className="p-3 text-center">Matches Realizados</th>
-                  <th className="p-3 text-center">Pospuestos</th>
-                  <th className="p-3 text-center">Cancelados</th>
-                  <th className="p-3 text-center">Conexiones</th>
-                  <th className="p-3 text-right">Estatus Actividad</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredMetrics.length > 0 ? (
-                  filteredMetrics.map((item) => (
-                    <tr key={item.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="p-3">
-                        <p className="font-semibold text-foreground">{item.nombre}</p>
-                        <p className="text-[11px] text-muted-foreground">{item.organizacion}</p>
-                      </td>
-                      <td className="p-3 text-center font-medium">
-                        <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-[11px]">
-                          {item.votosEmitidos}
-                        </span>
-                      </td>
-                      <td className="p-3 text-center font-semibold text-emerald-600">
-                        {item.matchesHechos}
-                      </td>
-                      <td className="p-3 text-center font-medium text-amber-600">
-                        {item.matchesPospuestos}
-                      </td>
-                      <td className="p-3 text-center font-medium text-rose-600">
-                        {item.matchesCancelados}
-                      </td>
-                      <td className="p-3 text-center font-semibold text-foreground">
-                        {item.conexionesTotales}
-                      </td>
-                      <td className="p-3 text-right">
-                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          item.nivelActividad === 'Alta' 
-                            ? 'bg-emerald-500/10 text-emerald-600' 
-                            : 'bg-muted text-muted-foreground'
-                        }`}>
-                          {item.nivelActividad === 'Alta' ? '★ Muy Activo' : 'Regular'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="text-center p-6 text-muted-foreground">
-                      No se encontraron registros coincidentes.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+        <CardContent className="p-4 sm:p-6 pt-2">
+          <p className="text-xs text-muted-foreground">
+            Módulo en desarrollo. Aquí se definirán los pesos de interés, sectores comerciales e compatibilidad horaria para agendar citas automatizadas.
+          </p>
         </CardContent>
       </Card>
     </div>
   );
 }
 
-// --- 4. COMPONENTE PRINCIPAL (EXPORT DEFAULT) ---
-export default function AdminPage({
-  language = 'es',
-  onLanguageChange,
-  isDarkMode,
-  onToggleTheme,
-}) {
+// --- COMPONENTE PRINCIPAL DE ADMINISTRACIÓN ---
+export default function AdminDashboard() {
   return (
-    <PlatformLayout
-      activeModuleId="admin"
-      language={language}
-      onLanguageChange={onLanguageChange}
-      isDarkMode={isDarkMode}
-      onToggleTheme={onToggleTheme}
-      badgeIcon={ShieldAlert}
-      badgeLabel="Admin"
-    >
-      <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
-        
-        {/* ENCABEZADO LIMPIO */}
-        <div className="space-y-1">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Panel de Control General</h1>
+    <PlatformLayout>
+      <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Panel de Administración</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Administración centralizada de usuarios, votaciones institucionales y estadísticas del sistema CUSMEX.
+            Gestión global de usuarios, seguridad, votaciones y emparejamientos B2B.
           </p>
         </div>
 
-        {/* TABS RESPONSIVAS */}
-        <Tabs defaultValue="usuarios" className="w-full">
-          <div className="overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
-            <TabsList className="grid w-full grid-cols-3 mb-4 sm:mb-6">
-              <TabsTrigger value="usuarios" className="gap-1.5 text-xs sm:text-sm">
-                <Users className="h-4 w-4" /> Usuarios y Roles
+        {/* CONTENEDOR PRINCIPAL DE PESTAÑAS (RESPONSIVO) */}
+        <Tabs defaultValue="users" className="w-full space-y-6">
+          <div className="w-full overflow-x-auto no-scrollbar pb-1">
+            <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground min-w-full sm:min-w-0 w-auto">
+              <TabsTrigger value="users" className="gap-2 text-xs whitespace-nowrap px-3 shrink-0">
+                <Users className="h-4 w-4" />
+                <span>Usuarios y Roles</span>
               </TabsTrigger>
-              <TabsTrigger value="votaciones" className="gap-1.5 text-xs sm:text-sm">
-                <Vote className="h-4 w-4" /> Votaciones
+              <TabsTrigger value="tokens" className="gap-2 text-xs whitespace-nowrap px-3 shrink-0">
+                <Key className="h-4 w-4" />
+                <span>Generador de Tokens</span>
               </TabsTrigger>
-              <TabsTrigger value="matchmaking" className="gap-1.5 text-xs sm:text-sm">
-                <Network className="h-4 w-4" /> Matchmaking
+              <TabsTrigger value="passwords" className="gap-2 text-xs whitespace-nowrap px-3 shrink-0">
+                <Lock className="h-4 w-4" />
+                <span>Olvidé Contraseña</span>
+              </TabsTrigger>
+              <TabsTrigger value="voting" className="gap-2 text-xs whitespace-nowrap px-3 shrink-0">
+                <Vote className="h-4 w-4" />
+                <span>Votaciones</span>
+              </TabsTrigger>
+              <TabsTrigger value="matchmaking" className="gap-2 text-xs whitespace-nowrap px-3 shrink-0">
+                <Network className="h-4 w-4" />
+                <span>Matchmaking</span>
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="usuarios">
+          <TabsContent value="users">
             <UsersManager />
           </TabsContent>
 
-          <TabsContent value="votaciones">
+          <TabsContent value="tokens">
+            <TokenGeneratorManager />
+          </TabsContent>
+
+          <TabsContent value="passwords">
+            <PasswordResetManager />
+          </TabsContent>
+
+          <TabsContent value="voting">
             <VotingManager />
           </TabsContent>
 

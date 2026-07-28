@@ -30,7 +30,7 @@ export default function Sponsors({
   // Datos de ejemplo para la interfaz del patrocinador
   const sponsorData = {
     name: 'TechCorp International',
-    level: 'Diamond Sponsor',
+    level: 'Activo',
     stand: 'Stand A-12 (Zona Principal)',
     contact: 'Coordinación Ejecutiva CUSMEX',
     stats: {
@@ -208,7 +208,7 @@ export default function Sponsors({
                     <p className="font-semibold text-foreground">{sponsorData.name}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Nivel de Patrocinio</p>
+                    <p className="text-muted-foreground">Nivel de Estatus</p>
                     <p className="font-semibold text-[#D80621]">{sponsorData.level}</p>
                   </div>
                   <div>

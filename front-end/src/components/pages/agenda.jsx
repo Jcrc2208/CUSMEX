@@ -202,9 +202,6 @@ function AgendaList({
     <main className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
       <header className="space-y-3">
         <div>
-          <span className="inline-flex items-center rounded-full bg-blue-500/10 px-3.5 py-1 text-xs font-semibold text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
-            Agenda
-          </span>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
