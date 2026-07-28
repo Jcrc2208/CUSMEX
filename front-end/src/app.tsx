@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ConfiUser from './components/pages/confi_user.jsx';
 import Login from './components/pages/login.jsx';
 import Inicio from './components/pages/inicio.jsx';
 import Agenda from './components/pages/agenda.jsx';
@@ -6,6 +7,7 @@ import Admin from './components/pages/admin.jsx';
 import Networking from './components/pages/networking.jsx'; 
 import Comites from './components/pages/comites.jsx';
 import Sponsors from './components/pages/sponsors.jsx';
+
 
 // Importa tu componente de Participantes o usa el Placeholder mientras lo desarrollas:
 // import Participantes from './components/pages/participantes.jsx'; 
@@ -72,6 +74,24 @@ export default function App() {
   const isAuthenticated = !!localStorage.getItem('auth_token');
   const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
   const isAdmin = userRole === 'admin' || userRole === 'administrador';
+
+  // 2. Render logic based on activeModule state
+  if (route.moduleId === 'confi_user') {
+    return (
+      <ConfiUser
+        language={language}
+        onLanguageChange={setLanguage}
+        isDarkMode={isDarkMode}
+        onToggleTheme={() => setIsDarkMode(!isDarkMode)}
+        onNavigate={handleNavigate}
+      />
+    );
+  }
+
+  // Configuracion inicial
+  if (route.moduleId == 'Configuración Inicial') {
+    return <ConfiUser {...sharedProps} />;
+  }
 
   // Autenticación
   if (!isAuthenticated) {
