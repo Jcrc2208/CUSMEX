@@ -23,16 +23,38 @@ import {
 } from '@/components/ui/card';
 
 import PlatformLayout from '@/components/layout/platform-layout';
-import {
-  AGENDA_DAYS,
-  AGENDA_SESSIONS,
-  getSessionById,
-  groupSessionsByTime,
-} from '@/data/agenda-sessions';
 import { COPY } from './login-i18n';
 import { navigateToAgenda, navigateToAgendaSession } from '@/config/platform-modules';
 
-const FAVORITES_KEY = 'natp-agenda-favorites';
+const FAVORITES_KEY = 'cusmex-agenda-favorites';
+
+const DEFAULT_DAYS = [
+  { id: 'day1', label: 'Día 1' },
+  { id: 'day2', label: 'Día 2' },
+  { id: 'day3', label: 'Día 3' },
+];
+
+const DEFAULT_SESSIONS = [
+  {
+    id: 's1',
+    dia_id: 'day1',
+    titulo: 'Apertura institucional del CUSMEX',
+    descripcion: 'Sesión plenaria de bienvenida con autoridades y visión del proyecto.',
+    fecha: 'Mié 19',
+    hora_inicio: '09:00',
+    hora_fin: '10:00',
+    duracion: '1h',
+    ubicacion: 'Auditorio principal',
+    formato: 'Presencial',
+    idioma: 'Español',
+    categoria: 'Keynote',
+    categoria_tone: 'orange',
+    track: 'Institucional',
+    ponente_nombre: 'Dra. Elena Morales',
+    ponente_cargo: 'Moderadora',
+    ponente_iniciales: 'EM',
+  }
+];
 
 function readFavoriteIds() {
   if (typeof window === 'undefined') return new Set();
@@ -52,7 +74,7 @@ function persistFavoriteIds(ids) {
       window.localStorage.setItem(FAVORITES_KEY, JSON.stringify([...ids]));
     }
   } catch {
-    // Manejo para restricciones de almacenamiento
+    // Manejo de almacenamiento
   }
 }
 
@@ -77,33 +99,34 @@ function SessionCategoryBadge({ label, tone }) {
   );
 }
 
-function SessionCard({ session, copy, labels, isFavorite, onToggleFavorite, onOpen }) {
-  const title = copy?.sessions?.[session.titleKey] ?? session.titleKey;
-  const category = copy?.categories?.[session.categoryKey] ?? session.categoryKey;
-  const zone = labels?.zones?.[session.zoneKey] ?? session.zoneKey;
-  const duration = copy?.durations?.[session.durationKey] ?? session.durationKey;
-  const speaker = session.speaker;
+function SessionCard({ session, isFavorite, onToggleFavorite, onOpen }) {
+  if (!session) return null;
 
   return (
     <Card
       className="cursor-pointer transition-all hover:ring-2 hover:ring-ring/50 focus-within:ring-2 focus-within:ring-ring min-h-[170px] flex flex-col justify-between w-full"
-      onClick={() => onOpen(session.id)}
+      onClick={() => onOpen?.(session.id)}
     >
       <CardHeader className="p-4 pb-2 space-y-2">
         <div className="flex items-center justify-between gap-2">
           <div className="truncate">
-            <SessionCategoryBadge label={category} tone={session.categoryTone} />
+            <SessionCategoryBadge
+              label={session.categoria || 'General'}
+              tone={session.categoria_tone || 'blue'}
+            />
           </div>
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
-            className={`shrink-0 ${isFavorite ? 'text-destructive hover:text-destructive' : 'text-muted-foreground'}`}
-            aria-label={isFavorite ? copy?.removeFromAgenda : copy?.addToAgenda}
+            className={`shrink-0 ${
+              isFavorite ? 'text-destructive hover:text-destructive' : 'text-muted-foreground'
+            }`}
+            aria-label={isFavorite ? 'Quitar de mi agenda' : 'Añadir a mi agenda'}
             aria-pressed={isFavorite}
             onClick={(event) => {
               event.stopPropagation();
-              onToggleFavorite(session.id);
+              onToggleFavorite?.(session.id);
             }}
           >
             <Heart className="h-4 w-4" fill={isFavorite ? 'currentColor' : 'none'} />
@@ -111,7 +134,7 @@ function SessionCard({ session, copy, labels, isFavorite, onToggleFavorite, onOp
         </div>
 
         <CardTitle className="text-base leading-snug line-clamp-2 break-words">
-          {title}
+          {session.titulo || 'Sin título'}
         </CardTitle>
       </CardHeader>
 
@@ -119,29 +142,30 @@ function SessionCard({ session, copy, labels, isFavorite, onToggleFavorite, onOp
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span className="flex items-center gap-1 shrink-0">
             <Clock3 className="h-3.5 w-3.5" />
-            {session.startTime} · {duration}
+            {session.hora_inicio || '--:--'} · {session.duracion || ''}
           </span>
           <span className="flex items-center gap-1 truncate max-w-[160px]">
             <MapPin className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{zone}</span>
+            <span className="truncate">{session.ubicacion || 'Por definir'}</span>
           </span>
         </div>
 
         <div className="flex items-center gap-2 pt-2 border-t border-border/50">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
-            {speaker?.avatarText}
+            {session.ponente_iniciales || <User className="h-3.5 w-3.5" />}
           </div>
-          <span className="text-xs font-medium text-foreground truncate">{speaker?.name}</span>
+          <span className="text-xs font-medium text-foreground truncate">
+            {session.ponente_nombre || 'Ponente por asignar'}
+          </span>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-// --- LISTA DE AGENDA ---
 function AgendaList({
-  copy,
-  labels,
+  sessions = [],
+  days = [],
   activeDayId,
   onDayChange,
   searchQuery,
@@ -150,44 +174,50 @@ function AgendaList({
   onToggleFavorite,
   onOpenSession,
 }) {
+  const safeSessions = Array.isArray(sessions) ? sessions : [];
+  const safeDays = Array.isArray(days) ? days : [];
+
   const filteredSessions = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    return AGENDA_SESSIONS.filter((session) => {
-      if (session.dayId !== activeDayId) return false;
+    const query = (searchQuery || '').trim().toLowerCase();
+    return safeSessions.filter((session) => {
+      if (session.dia_id !== activeDayId) return false;
       if (!query) return true;
-      const title = copy?.sessions?.[session.titleKey]?.toLowerCase() ?? '';
-      const speaker = session.speaker?.name?.toLowerCase() ?? '';
+      const title = session.titulo?.toLowerCase() ?? '';
+      const speaker = session.ponente_nombre?.toLowerCase() ?? '';
       return title.includes(query) || speaker.includes(query);
     });
-  }, [activeDayId, copy, searchQuery]);
+  }, [activeDayId, safeSessions, searchQuery]);
 
-  const grouped = useMemo(() => groupSessionsByTime(filteredSessions), [filteredSessions]);
+  const grouped = useMemo(() => {
+    const groups = {};
+    filteredSessions.forEach((session) => {
+      const time = session.hora_inicio || 'Por definir';
+      if (!groups[time]) groups[time] = [];
+      groups[time].push(session);
+    });
+    return Object.entries(groups);
+  }, [filteredSessions]);
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
       <header className="space-y-3">
         <div>
           <span className="inline-flex items-center rounded-full bg-blue-500/10 px-3.5 py-1 text-xs font-semibold text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
-            {copy?.badge || 'Agenda'}
+            Agenda
           </span>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
-              {copy?.title || 'Agenda'}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {copy?.subtitle || '5 sesiones · 3 días · Oakland Edition'}
-            </p>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Agenda</h1>
+            <p className="text-sm text-muted-foreground mt-1">Programa oficial de sesiones</p>
           </div>
         </div>
       </header>
 
-      {/* Toolbar / Filtros */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="inline-flex rounded-lg bg-muted p-1 text-muted-foreground" role="tablist">
-          {AGENDA_DAYS.map((day) => {
+          {safeDays.map((day) => {
             const isActive = activeDayId === day.id;
             return (
               <button
@@ -200,46 +230,40 @@ function AgendaList({
                     ? 'bg-background text-foreground shadow-sm'
                     : 'hover:text-foreground'
                 }`}
-                onClick={() => onDayChange(day.id)}
+                onClick={() => onDayChange?.(day.id)}
               >
-                {day.shortLabel}
+                {day.label}
               </button>
             );
           })}
         </div>
 
-        {/* Buscador */}
         <div className="relative flex items-center w-full md:w-80">
           <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             type="search"
             className="pl-9 pr-3"
-            placeholder={copy?.searchPlaceholder || 'Buscar...'}
+            placeholder="Buscar por título o ponente..."
             value={searchQuery}
-            onChange={(event) => onSearchChange(event.target.value)}
+            onChange={(event) => onSearchChange?.(event.target.value)}
           />
         </div>
       </div>
 
-      {/* Grid del Timeline */}
       <div className="space-y-6 pt-2">
         {grouped.length === 0 && (
           <div className="py-12 text-center text-sm text-muted-foreground">
-            {copy?.emptyDay || 'No hay sesiones programadas.'}
+            No hay sesiones programadas en este día.
           </div>
         )}
-        {grouped.map(([time, sessions]) => (
+        {grouped.map(([time, sessionsList]) => (
           <section key={time} className="grid grid-cols-1 gap-4 md:grid-cols-[80px_1fr]">
-            <div className="text-sm font-semibold text-muted-foreground md:pt-2">
-              {time}
-            </div>
+            <div className="text-sm font-semibold text-muted-foreground md:pt-2">{time}</div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {sessions.map((session) => (
+              {sessionsList.map((session) => (
                 <SessionCard
                   key={session.id}
                   session={session}
-                  copy={copy}
-                  labels={labels}
                   isFavorite={favoriteIds.has(session.id)}
                   onToggleFavorite={onToggleFavorite}
                   onOpen={onOpenSession}
@@ -253,90 +277,81 @@ function AgendaList({
   );
 }
 
-// --- DETALLE DE SESIÓN ---
-function AgendaDetail({ sessionId, copy, labels, favoriteIds, onToggleFavorite }) {
+function AgendaDetail({ session, favoriteIds, onToggleFavorite }) {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [sessionId]);
-
-  const session = getSessionById(sessionId);
+  }, [session?.id]);
 
   if (!session) {
     return (
       <main className="max-w-3xl mx-auto space-y-6 text-center py-12 animate-in fade-in-0 duration-300">
         <Button variant="ghost" size="sm" onClick={() => navigateToAgenda()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          {copy?.backToAgenda || 'Volver a la agenda'}
+          Volver a la agenda
         </Button>
-        <p className="text-muted-foreground">{copy?.sessionNotFound || 'Sesión no encontrada'}</p>
+        <p className="text-muted-foreground">Sesión no encontrada</p>
       </main>
     );
   }
 
-  const title = copy?.sessions?.[session.titleKey] ?? session.titleKey;
-  const about = copy?.sessions?.[session.aboutKey] ?? session.aboutKey;
-  const category = copy?.categories?.[session.categoryKey] ?? session.categoryKey;
-  const track = copy?.tracks?.[session.trackKey] ?? session.trackKey;
-  const zone = labels?.zones?.[session.zoneKey] ?? session.zoneKey;
-  const format = copy?.formats?.[session.formatKey] ?? session.formatKey;
-  const language = copy?.languages?.[session.languageKey] ?? session.languageKey;
-  const duration = copy?.durations?.[session.durationKey] ?? session.durationKey;
-  const day = AGENDA_DAYS.find((item) => item.id === session.dayId);
-  const dateLabel = day ? day.shortLabel : '';
   const isFavorite = favoriteIds.has(session.id);
-  const speakerRole = copy?.speakerRoles?.[session.speaker?.roleKey] ?? session.speaker?.roleKey;
 
   return (
     <main className="max-w-4xl mx-auto space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-400">
       <Button variant="ghost" size="sm" className="rounded-xl" onClick={() => navigateToAgenda()}>
         <ArrowLeft className="h-4 w-4 mr-2" />
-        {copy?.backToAgenda || 'Volver a la agenda'}
+        Volver a la agenda
       </Button>
 
       <div className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-8 shadow-sm">
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <SessionCategoryBadge label={category} tone={session.categoryTone} />
-            <span className="rounded-full bg-muted px-3 py-0.5 text-xs font-medium text-muted-foreground">
-              {track}
-            </span>
+            <SessionCategoryBadge
+              label={session.categoria || 'General'}
+              tone={session.categoria_tone || 'blue'}
+            />
+            {session.track && (
+              <span className="rounded-full bg-muted px-3 py-0.5 text-xs font-medium text-muted-foreground">
+                {session.track}
+              </span>
+            )}
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-extrabold text-foreground leading-tight">
-            {title}
+            {session.titulo}
           </h1>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-muted/40 border border-border/50">
           <div className="space-y-1">
             <span className="text-[11px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-              <CalendarDays className="h-3 w-3" /> {copy?.labels?.date || 'Fecha'}
+              <CalendarDays className="h-3 w-3" /> FECHA
             </span>
-            <p className="text-xs font-semibold text-foreground">{dateLabel}</p>
+            <p className="text-xs font-semibold text-foreground">{session.fecha || 'N/A'}</p>
           </div>
 
           <div className="space-y-1">
             <span className="text-[11px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-              <Clock3 className="h-3 w-3" /> {copy?.labels?.schedule || 'Horario'}
+              <Clock3 className="h-3 w-3" /> HORARIO
             </span>
             <p className="text-xs font-semibold text-foreground">
-              {session.startTime} – {session.endTime} ({duration})
+              {session.hora_inicio || '--:--'} – {session.hora_fin || '--:--'} ({session.duracion || 'N/A'})
             </p>
           </div>
 
           <div className="space-y-1">
             <span className="text-[11px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-              <MapPin className="h-3 w-3" /> {copy?.labels?.location || 'Ubicación'}
+              <MapPin className="h-3 w-3" /> UBICACIÓN
             </span>
-            <p className="text-xs font-semibold text-foreground">{zone}</p>
+            <p className="text-xs font-semibold text-foreground">{session.ubicacion || 'Por definir'}</p>
           </div>
 
           <div className="space-y-1">
             <span className="text-[11px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-              <Globe2 className="h-3 w-3" /> {copy?.labels?.formatLanguage || 'Formato / Idioma'}
+              <Globe2 className="h-3 w-3" /> FORMATO / IDIOMA
             </span>
             <p className="text-xs font-semibold text-foreground">
-              {format} · {language}
+              {session.formato || 'Presencial'} · {session.idioma || 'Español'}
             </p>
           </div>
         </div>
@@ -344,23 +359,27 @@ function AgendaDetail({ sessionId, copy, labels, favoriteIds, onToggleFavorite }
         <Separator />
 
         <div className="space-y-2">
-          <h2 className="text-lg font-bold text-foreground">{copy?.aboutTitle || 'Acerca de'}</h2>
-          <p className="text-sm leading-relaxed text-muted-foreground">{about}</p>
+          <h2 className="text-lg font-bold text-foreground">Acerca de esta sesión</h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {session.descripcion || 'Sin descripción disponible.'}
+          </p>
         </div>
 
         <Separator />
 
         <div className="space-y-3">
-          <h2 className="text-lg font-bold text-foreground">{copy?.speakerTitle || 'Ponente'}</h2>
+          <h2 className="text-lg font-bold text-foreground">Speaker</h2>
           <div className="flex items-center gap-4 rounded-xl border border-border p-4 bg-background">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-base font-bold text-primary">
-              {session.speaker?.avatarText || <User className="h-6 w-6" />}
+              {session.ponente_iniciales || <User className="h-6 w-6" />}
             </div>
             <div>
               <strong className="block text-base font-bold text-foreground">
-                {session.speaker?.name}
+                {session.ponente_nombre || 'Sin asignar'}
               </strong>
-              <span className="text-xs text-muted-foreground">{speakerRole}</span>
+              <span className="text-xs text-muted-foreground">
+                {session.ponente_cargo || 'Ponente'}
+              </span>
             </div>
           </div>
         </div>
@@ -370,62 +389,60 @@ function AgendaDetail({ sessionId, copy, labels, favoriteIds, onToggleFavorite }
             type="button"
             variant={isFavorite ? 'destructive' : 'default'}
             className="flex-1 sm:flex-none rounded-xl"
-            onClick={() => onToggleFavorite(session.id)}
+            onClick={() => onToggleFavorite?.(session.id)}
           >
             <Heart className="h-4 w-4 mr-2" fill={isFavorite ? 'currentColor' : 'none'} />
-            {isFavorite ? (copy?.removeFromAgenda || 'Quitar de mi agenda') : (copy?.myAgenda || 'Añadir a mi agenda')}
+            {isFavorite ? 'Quitar de mi agenda' : 'Mi agenda'}
           </Button>
 
-
-          <Button type="button" 
+          <Button
+            type="button"
             variant="outline"
-            className="flex-1 sm:flex-none rounded-xl " onClick={() => {
-            const title = encodeURIComponent("reunion CUSMEX");
-            const details = encodeURIComponent("seguimiento de tareas y avances del proyecto.");
-            const location = encodeURIComponent("remoto");
-            
-           // Obtenemos la fecha y hora actual en formato UTC requerido por Google Calendar
-            const now = new Date();
-           const startIso = now.toISOString().replace(/-|:|\.\d+/g, ""); // Ej: 20260724T162736Z
-    
-            // Sumamos 1 hora para la hora de fin
-            const endDate = new Date(now.getTime() + 60 * 60 * 1000);
-            const endIso = endDate.toISOString().replace(/-|:|\.\d+/g, "");
+            className="flex-1 sm:flex-none rounded-xl"
+            onClick={() => {
+              const title = encodeURIComponent(session.titulo || 'Reunión CUSMEX');
+              const details = encodeURIComponent(session.descripcion || '');
+              const location = encodeURIComponent(session.ubicacion || 'Remoto');
 
-            const dates = `${startIso}/${endIso}`;
-            
-            const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}`;
-            window.open(url, '_blank');
-          }}>
+              const now = new Date();
+              const startIso = now.toISOString().replace(/-|:|\.\d+/g, '');
+              const endDate = new Date(now.getTime() + 60 * 60 * 1000);
+              const endIso = endDate.toISOString().replace(/-|:|\.\d+/g, '');
+
+              const dates = `${startIso}/${endIso}`;
+              const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}`;
+              window.open(url, '_blank');
+            }}
+          >
             <CalendarPlus className="h-4 w-4 mr-2" />
-            {copy?.addGoogleCalendar || 'Añadir a Google Calendar'}
+            Agregar a Google Calendar
           </Button>
 
-           <Button 
-           type="button" 
-           variant="outline"
-           className="rounded-xl" 
-           onClick={async () => {
-            if (navigator.share) {
-           try {
-           await navigator.share({
-            title: 'CUSMEX - Reunión',
-            text: 'Te comparto los detalles del seguimiento de tareas y avances del proyecto CUSMEX.',
-            url: window.location.href,
-            });
-            } catch (error) {
-            if (error.name !== 'AbortError') {
-            console.error('Error al compartir:', error);
-            }
-            }
-            } else {
-            navigator.clipboard.writeText(window.location.href);
-           alert('¡Enlace copiado al portapapeles!');
-           }
-           }}
-           >
-           <Share2 className="h-4 w-4" />
-           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-xl"
+            onClick={async () => {
+              if (navigator.share) {
+                try {
+                  await navigator.share({
+                    title: session.titulo,
+                    text: session.descripcion,
+                    url: window.location.href,
+                  });
+                } catch (error) {
+                  if (error.name !== 'AbortError') {
+                    console.error('Error al compartir:', error);
+                  }
+                }
+              } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('¡Enlace copiado al portapapeles!');
+              }
+            }}
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </main>
@@ -438,14 +455,20 @@ export default function Agenda({
   onLanguageChange,
   isDarkMode,
   onToggleTheme,
+  sessions = DEFAULT_SESSIONS,
+  days = DEFAULT_DAYS,
 }) {
-  const t = COPY[language] ?? COPY.es;
-  const copy = t.agenda;
-  const labels = copy?.labels;
+  const activeSessions = sessions.length > 0 ? sessions : DEFAULT_SESSIONS;
+  const activeDays = days.length > 0 ? days : DEFAULT_DAYS;
 
-  const [activeDayId, setActiveDayId] = useState('day1');
+  const [activeDayId, setActiveDayId] = useState(activeDays[0]?.id || 'day1');
   const [searchQuery, setSearchQuery] = useState('');
   const [favoriteIds, setFavoriteIds] = useState(readFavoriteIds);
+
+  const selectedSession = useMemo(
+    () => activeSessions.find((s) => String(s.id) === String(sessionId)),
+    [activeSessions, sessionId]
+  );
 
   function handleToggleFavorite(id) {
     setFavoriteIds((prev) => {
@@ -470,20 +493,18 @@ export default function Agenda({
       isDarkMode={isDarkMode}
       onToggleTheme={onToggleTheme}
       badgeIcon={CalendarDays}
-      badgeLabel={copy?.badge || 'Agenda'}
+      badgeLabel="Agenda"
     >
       {sessionId ? (
         <AgendaDetail
-          sessionId={sessionId}
-          copy={copy}
-          labels={labels}
+          session={selectedSession}
           favoriteIds={favoriteIds}
           onToggleFavorite={handleToggleFavorite}
         />
       ) : (
         <AgendaList
-          copy={copy}
-          labels={labels}
+          sessions={activeSessions}
+          days={activeDays}
           activeDayId={activeDayId}
           onDayChange={setActiveDayId}
           searchQuery={searchQuery}
