@@ -1,19 +1,19 @@
-from fastapi import FastAPI, Depends, HTTPException
+import os
+# Desactiva el warning de symlinks de Hugging Face en Windows
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import Column, Integer, String
-from pydantic import BaseModel
-import bcrypt
-from groq import Groq 
 from pydantic import BaseModel, EmailStr
+import bcrypt
+from groq import Groq
+from faster_whisper import WhisperModel
 
-from database import get_db, engine, Base
+from database import get_db, engine, Base, SessionLocal
 
-
-class ForgotPasswordSchema(BaseModel):
- email: EmailStr
-
-# 1. Definición del Modelo
+# 1. Definición del Modelo de Base de Datos
 class Usuario(Base):
     __tablename__ = "usuarios"
     id = Column(Integer, primary_key=True, index=True)
@@ -25,6 +25,10 @@ class Usuario(Base):
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="CUSMEX API")
+
+# Inicialización del modelo Faster Whisper (Local y gratis)
+model_size = "base"
+Whisper_Model = WhisperModel(model_size, device="cpu", compute_type="int8")
 
 # 2. Configuración CORS
 app.add_middleware(
@@ -39,12 +43,10 @@ app.add_middleware(
 def init_db():
     db = SessionLocal()
     try:
-        # Generamos el hash una sola vez para optimizar
         raw_password = "admin123".encode('utf-8')
         salt = bcrypt.gensalt()
         hashed_pw = bcrypt.hashpw(raw_password, salt).decode('utf-8')
 
-        # Lista de usuarios de prueba (Roles exactos que manda React)
         usuarios_prueba = [
             {"correo": "admin@natp.org", "rol": "admin"},
             {"correo": "empresa@dominio.com", "rol": "empresas"},
@@ -67,11 +69,10 @@ def init_db():
     finally:
         db.close()
 
-from database import SessionLocal
 init_db()
 
 # CONFIGURACIÓN DEL CLIENTE GROQ (IA)
-client = Groq(api_key=("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"))
+client = Groq(api_key="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")
 
 # 4. Esquemas Pydantic
 class LoginRequest(BaseModel):
@@ -82,8 +83,24 @@ class LoginRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     prompt: str
-    uploaded_by: str = "Usuario"  # Quién subió el evento/archivo
-    item_content: str = ""        # Qué fue lo que subió
+    uploaded_by: str = "Usuario"
+    item_content: str = ""
+
+class ForgotPasswordSchema(BaseModel):
+    email: EmailStr
+
+class ActivateAccountSchema(BaseModel):
+    token: str
+    email: EmailStr
+    new_password: str
+
+# Simulación temporal de base de datos de invitaciones
+INVITATIONS_DB = {
+    "TOKEN-SECRETO-123": {
+        "email": "carlos.perez@example.com",
+        "used": False
+    }
+}
 
 ROLE_EQUIVALENCES = {
     "administrador": ["admin", "administrador"],
@@ -93,14 +110,11 @@ ROLE_EQUIVALENCES = {
 # 5. Endpoint de Login
 @app.post("/api/v1/auth/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
-    
-    # A. Buscar al usuario únicamente por su correo
     db_user = db.query(Usuario).filter(Usuario.correo == request.email.strip()).first()
     
     if not db_user:
         raise HTTPException(status_code=401, detail="Correo, contraseña o rol incorrectos")
 
-    # B. Validar equivalencia de roles
     role_frontend = request.accessRole.strip().lower()
     role_bd = db_user.Rol.strip().lower()
     valid_roles = ROLE_EQUIVALENCES.get(role_frontend, [role_frontend])
@@ -108,14 +122,12 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     if role_bd not in valid_roles:
         raise HTTPException(status_code=401, detail="Correo, contraseña o rol incorrectos")
         
-    # C. Verificar contraseña con bcrypt
     password_bytes = request.password.encode('utf-8')
     hash_bytes = db_user.contraseña.encode('utf-8')
     
     if not bcrypt.checkpw(password_bytes, hash_bytes):
         raise HTTPException(status_code=401, detail="Correo, contraseña o rol incorrectos")
     
-    # D. Respuesta Exitosa
     return {
         "message": "Login exitoso",
         "token": "token-jwt-generado-proximamente",
@@ -125,6 +137,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             "role": db_user.Rol
         }
     }
+
 # 6. Endpoint de Chat con IA (Groq)
 @app.post("/api/chat")
 async def chat_with_ai(data: ChatRequest):
@@ -153,11 +166,97 @@ async def chat_with_ai(data: ChatRequest):
         print("Error en el cliente de Groq:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
-
-
-# se valida el inicio de olvidar contraseña en  el login pero aun queda validar con victor rosales
+# 7. Endpoint de Recuperación de Contraseña
 @app.post("/api/v1/auth/forgot-password")
-async def forgot_password(data: ForgotPasswordSchema):
-         #logica para verificar si el coreeo existe 
-          return {"message": "si el correo esta registrado ,se ha enviado las intrucciones."}
+async def forgot_password(data: ForgotPasswordSchema, db: Session = Depends(get_db)):
+    db_user = db.query(Usuario).filter(Usuario.correo == data.email.strip()).first()
     
+    if db_user:
+        pass
+
+    return {"message": "Si el correo está registrado, se han enviado las instrucciones."}
+
+# 8. Endpoint de Activación de Cuenta por Token de Un Solo Uso
+@app.post("/api/v1/auth/activate-account")
+async def activate_account(data: ActivateAccountSchema, db: Session = Depends(get_db)):
+    invitation = INVITATIONS_DB.get(data.token)
+    
+    if not invitation:
+        raise HTTPException(status_code=400, detail="El token de invitación no es válido.")
+    
+    if invitation["used"]:
+        raise HTTPException(status_code=400, detail="Este token ya fue utilizado anteriormente.")
+    
+    if invitation["email"] != data.email:
+        raise HTTPException(status_code=400, detail="El correo no coincide con la invitación.")
+    
+    db_user = db.query(Usuario).filter(Usuario.correo == data.email.strip()).first()
+    
+    raw_password = data.new_password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed_pw = bcrypt.hashpw(raw_password, salt).decode('utf-8')
+
+    if db_user:
+        db_user.contraseña = hashed_pw
+    else:
+        nuevo_usuario = Usuario(
+            correo=data.email.strip(),
+            contraseña=hashed_pw,
+            Rol="empresas"
+        )
+        db.add(nuevo_usuario)
+    
+    db.commit()
+    invitation["used"] = True
+    
+    return {
+        "status": "success",
+        "message": "¡Cuenta habilitada con éxito! Ya puedes iniciar sesión de forma privada."
+    }
+
+# 9. Endpoint de Asistente de Voz (Faster Whisper local + Groq LLM)
+@app.post("/api/voice-assistant")
+async def voice_assistant(file: UploadFile = File(...), language: str = Form(...)):
+    audio_path = f"temp_{file.filename}"
+    try:
+        # 1. Guardar temporalmente el audio recibido
+        with open(audio_path, "wb") as buffer:
+            buffer.write(await file.read())
+
+        # 2. Transcribir localmente con faster-whisper (¡Cero costos!)
+        segments, info = Whisper_Model.transcribe(audio_path, beam_size=5)
+        user_text = " ".join([segment.text for segment in segments])
+
+        # 3. Procesar el texto transcrito con Groq (Llama 3.3) aplicando las reglas de CUSMEX
+        system_instruction = (
+            "Eres el asistente personal de CUSMEX. "
+            "REGLAS ESTRICTAS:\n"
+            "1. Cero rodeos y cero introducciones largas. Ve directo al grano.\n"
+            "2. Si el usuario responde con un 'sí', 'claro' o una afirmación corta a tu pregunta anterior, NO vuelvas a preguntar lo mismo; asume de inmediato la acción y muestra la información o los eventos de hoy.\n"
+            "3. Mantén las respuestas cortas (máximo 3-4 líneas) y en un tono natural y servicial."
+        )
+
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": user_text}
+            ],
+            temperature=0.5,
+        )
+        
+        ai_response_text = completion.choices[0].message.content
+
+        return {
+            "userText": user_text,
+            "aiText": ai_response_text,
+        }
+
+    except Exception as e:
+        print("Error en el asistente de voz:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+        
+    finally:
+        # Limpieza obligatoria del archivo temporal de audio
+        if os.path.exists(audio_path):
+            os.remove(audio_path)

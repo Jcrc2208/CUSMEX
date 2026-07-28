@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Bot,
@@ -7,7 +7,10 @@ import {
   Sparkles,
   RefreshCw,
   X,
-  Minus,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -33,16 +36,38 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
 
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!inputValue.trim() || isLoading) return;
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
-    const userText = inputValue.trim();
+  // Función para reproducir audio de la IA (si el backend lo soporta mediante TTS)
+  const speakText = (text) => {
+    if (!soundEnabled || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = language === 'en' ? 'en-US' : 'es-MX';
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  useEffect(() => {
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  // Procesamiento de texto general
+  const processAndSendText = async (textToSend) => {
+    if (!textToSend.trim() || isLoading) return;
+
     const userMessage = {
       id: Date.now(),
       sender: 'user',
-      text: userText,
+      text: textToSend.trim(),
       time: new Date().toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
@@ -56,10 +81,8 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
     let aiReplyText = '';
 
     if (onSendAI) {
-      // Llamada real al backend de FastAPI configurado en PlatformLayout
-      aiReplyText = await onSendAI(userText, 'Usuario CUSMEX', '');
+      aiReplyText = await onSendAI(userMessage.text, 'Usuario CUSMEX', '');
     } else {
-      // Fallback simulado en caso de no pasar prop
       await new Promise((resolve) => setTimeout(resolve, 800));
       aiReplyText =
         language === 'en'
@@ -79,18 +102,115 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
 
     setMessages((prev) => [...prev, aiReply]);
     setIsLoading(false);
+    speakText(aiReplyText);
+  };
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    await processAndSendText(inputValue);
+  };
+
+  // Grabación de nota de voz tipo WhatsApp para enviar a FastAPI
+  const startRecording = async () => {
+    audioChunksRef.current = [];
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await sendAudioToBackend(audioBlob);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Error al acceder al micrófono:", err);
+      alert("No se pudo acceder al micrófono. Revisa los permisos.");
+      setIsRecording(false);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+      setIsRecording(false);
+    }
+  };
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  const sendAudioToBackend = async (audioBlob) => {
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", audioBlob, "voice_message.webm");
+      formData.append("language", language);
+
+     const response = await fetch("/api/voice-assistant", {
+     method: "POST",
+     body: formData,
+     });
+
+      if (!response.ok) throw new Error("Error en el servidor de voz");
+
+      const data = await response.json();
+
+      const userMsg = {
+        id: Date.now(),
+        sender: 'user',
+        text: data.userText || (language === 'en' ? '[Voice Message]' : '[Nota de voz]'),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      const aiMsg = {
+        id: Date.now() + 1,
+        sender: 'ai',
+        text: data.aiText || 'Respuesta recibida.',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      setMessages((prev) => [...prev, userMsg, aiMsg]);
+      speakText(aiMsg.text);
+
+    } catch (error) {
+      console.error("Error procesando nota de voz con el backend:", error);
+      // Fallback local si el endpoint de voz aún no está activo en FastAPI
+      const fallbackMsg = {
+        id: Date.now(),
+        sender: 'ai',
+        text: language === 'en' ? 'Audio received, but backend voice endpoint is not configured yet.' : 'Audio recibido, pero el endpoint de voz en FastAPI aún no está configurado.',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, fallbackMsg]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleReset = () => {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     setMessages([messages[0]]);
   };
 
   const content = (
     <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999] flex flex-col items-end gap-3 pointer-events-auto">
-      {/* Pop-up flotante del Chat */}
       {isOpen && (
         <Card className="fixed inset-3 sm:inset-auto sm:relative w-auto sm:w-[400px] h-[calc(100dvh-5rem)] sm:h-[520px] max-h-[650px] shadow-2xl border border-border flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200 bg-background">
-          {/* Header del Chat */}
           <CardHeader className="p-3.5 sm:p-4 border-b border-border flex flex-row items-center justify-between space-y-0 shrink-0">
             <div className="flex items-center gap-2.5 sm:gap-3">
               <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
@@ -113,6 +233,22 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
                 type="button"
                 variant="ghost"
                 size="icon-sm"
+                onClick={() => {
+                  setSoundEnabled(!soundEnabled);
+                  if (soundEnabled && 'speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                  }
+                }}
+                className="text-muted-foreground hover:text-foreground h-8 w-8"
+                title={soundEnabled ? 'Silenciar voz de la IA' : 'Activar voz de la IA'}
+              >
+                {soundEnabled ? <Volume2 className="h-4 w-4 text-primary" /> : <VolumeX className="h-4 w-4" />}
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
                 onClick={handleReset}
                 className="text-muted-foreground hover:text-foreground h-8 w-8"
                 title={copy?.clearHistory || 'Reiniciar conversación'}
@@ -123,7 +259,10 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                  setIsOpen(false);
+                }}
                 className="text-muted-foreground hover:text-foreground h-8 w-8"
               >
                 <X className="h-4 w-4" />
@@ -131,7 +270,6 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
             </div>
           </CardHeader>
 
-          {/* Área de Mensajes */}
           <CardContent className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-background">
             {messages.map((msg) => {
               const isUser = msg.sender === 'user';
@@ -142,7 +280,6 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
                     isUser ? 'ml-auto flex-row-reverse' : ''
                   }`}
                 >
-                  {/* Avatar */}
                   <div
                     className={`flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
                       isUser
@@ -153,7 +290,6 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
                     {isUser ? <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                   </div>
 
-                  {/* Burbuja */}
                   <div className="space-y-1">
                     <div
                       className={`rounded-2xl px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm leading-relaxed ${
@@ -181,24 +317,46 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
                 <span>Pensando respuesta...</span>
               </div>
             )}
+            {isRecording && (
+              <div className="flex items-center gap-2 text-xs text-red-500 animate-pulse font-medium">
+                <Mic className="h-4 w-4 animate-bounce" />
+                <span>Grabando nota de voz... (Haz clic de nuevo para enviar)</span>
+              </div>
+            )}
           </CardContent>
 
-          {/* Input e Ingreso de Datos */}
           <div className="p-3 sm:p-4 border-t border-border bg-card shrink-0">
             <form onSubmit={handleSend} className="flex items-center gap-2">
               <Input
                 type="text"
                 placeholder={
-                  copy?.inputPlaceholder || 'Escribe tu pregunta sobre la agenda...'
+                  isRecording
+                    ? (language === 'en' ? 'Recording audio...' : 'Grabando audio...')
+                    : (copy?.inputPlaceholder || 'Escribe tu pregunta sobre la agenda...')
                 }
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                disabled={isLoading}
-                className="flex-1 rounded-xl text-base sm:text-sm h-10 sm:h-9"
+                disabled={isLoading || isRecording}
+                className={`flex-1 rounded-xl text-base sm:text-sm h-10 sm:h-9 ${
+                  isRecording ? 'border-red-500 animate-pulse text-red-500' : ''
+                }`}
               />
+              
+              <Button
+                type="button"
+                onClick={toggleRecording}
+                variant={isRecording ? "destructive" : "outline"}
+                className={`rounded-xl h-10 sm:h-9 w-10 sm:w-9 p-0 shrink-0 ${
+                  isRecording ? 'animate-bounce bg-red-500 text-white' : ''
+                }`}
+                title={isRecording ? 'Detener y enviar audio' : 'Grabar nota de voz'}
+              >
+                {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+
               <Button
                 type="submit"
-                disabled={!inputValue.trim() || isLoading}
+                disabled={!inputValue.trim() || isLoading || isRecording}
                 className="rounded-xl px-3.5 sm:px-4 h-10 sm:h-9 shrink-0"
               >
                 <Send className="h-4 w-4" />
@@ -211,7 +369,6 @@ export default function FloatingAIButton({ language = 'es', onSendAI }) {
         </Card>
       )}
 
-      {/* Botón Flotante de Apertura (Solo visible cuando el chat está CERRADO) */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}

@@ -873,4 +873,4 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
       </main>
     </PlatformLayout>
   );
-}
+}4
