@@ -7,13 +7,11 @@ import {
   Globe2,
   Heart,
   MapPin,
-  Search,
   Share2,
   User,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import {
   Card,
@@ -168,8 +166,6 @@ function AgendaList({
   days = [],
   activeDayId,
   onDayChange,
-  searchQuery,
-  onSearchChange,
   favoriteIds,
   onToggleFavorite,
   onOpenSession,
@@ -178,15 +174,8 @@ function AgendaList({
   const safeDays = Array.isArray(days) ? days : [];
 
   const filteredSessions = useMemo(() => {
-    const query = (searchQuery || '').trim().toLowerCase();
-    return safeSessions.filter((session) => {
-      if (session.dia_id !== activeDayId) return false;
-      if (!query) return true;
-      const title = session.titulo?.toLowerCase() ?? '';
-      const speaker = session.ponente_nombre?.toLowerCase() ?? '';
-      return title.includes(query) || speaker.includes(query);
-    });
-  }, [activeDayId, safeSessions, searchQuery]);
+    return safeSessions.filter((session) => session.dia_id === activeDayId);
+  }, [activeDayId, safeSessions]);
 
   const grouped = useMemo(() => {
     const groups = {};
@@ -201,9 +190,6 @@ function AgendaList({
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
       <header className="space-y-3">
-        <div>
-        </div>
-
         <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Agenda</h1>
@@ -212,8 +198,9 @@ function AgendaList({
         </div>
       </header>
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="inline-flex rounded-lg bg-muted p-1 text-muted-foreground" role="tablist">
+      {/* SELECTOR DE DÍAS */}
+      <div className="flex items-center">
+        <div className="inline-flex w-full sm:w-auto rounded-lg bg-muted p-1 text-muted-foreground" role="tablist">
           {safeDays.map((day) => {
             const isActive = activeDayId === day.id;
             return (
@@ -222,7 +209,7 @@ function AgendaList({
                 type="button"
                 role="tab"
                 aria-selected={isActive}
-                className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                className={`flex-1 sm:flex-none rounded-md px-4 py-1.5 text-xs font-medium transition-all ${
                   isActive
                     ? 'bg-background text-foreground shadow-sm'
                     : 'hover:text-foreground'
@@ -233,16 +220,6 @@ function AgendaList({
               </button>
             );
           })}
-        </div>
-
-        <div className="relative flex items-center w-full md:w-80">
-          <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input
-            type="search"
-            className="pl-9 pr-3"
-            value={searchQuery}
-            onChange={(event) => onSearchChange?.(event.target.value)}
-          />
         </div>
       </div>
 
@@ -458,7 +435,6 @@ export default function Agenda({
   const activeDays = days.length > 0 ? days : DEFAULT_DAYS;
 
   const [activeDayId, setActiveDayId] = useState(activeDays[0]?.id || 'day1');
-  const [searchQuery, setSearchQuery] = useState('');
   const [favoriteIds, setFavoriteIds] = useState(readFavoriteIds);
 
   const selectedSession = useMemo(
@@ -503,8 +479,6 @@ export default function Agenda({
           days={activeDays}
           activeDayId={activeDayId}
           onDayChange={setActiveDayId}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
           favoriteIds={favoriteIds}
           onToggleFavorite={handleToggleFavorite}
           onOpenSession={handleOpenSession}
