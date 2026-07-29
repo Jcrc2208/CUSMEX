@@ -79,7 +79,7 @@ export default function Sponsors({
               <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">
                 {sponsorData.name}
               </h1>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold text-[#D80621] border border-[#D80621]/30 bg-[#D80621]/5 shrink-0">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold text-[#10B981] border border-[#10B981]/30 bg-[#10B981]/5 shrink-0">
                 <Award className="w-3.5 h-3.5 mr-1" />
                 {sponsorData.level}
               </span>
@@ -153,11 +153,11 @@ export default function Sponsors({
                 <CardContent className="p-3.5 sm:p-4 flex items-center justify-between">
                   <div className="space-y-0.5">
                     <p className="text-xs font-medium text-muted-foreground">Invitados Pendientes</p>
-                    <p className="text-lg sm:text-xl font-bold text-[#D80621]">
+                    <p className="text-lg sm:text-xl font-bold text-[#10B981]">
                       {sponsorData.stats.pendingGuests}
                     </p>
                   </div>
-                  <div className="p-2 sm:p-2.5 bg-[#D80621]/10 rounded-lg text-[#D80621] shrink-0">
+                  <div className="p-2 sm:p-2.5 bg-[#10B981]/10 rounded-lg text-[#10B981] shrink-0">
                     <Clock className="w-4 h-4" />
                   </div>
                 </CardContent>
@@ -209,7 +209,7 @@ export default function Sponsors({
                   </div>
                   <div>
                     <p className="text-muted-foreground">Nivel de Estatus</p>
-                    <p className="font-semibold text-[#D80621]">{sponsorData.level}</p>
+                    <p className="font-semibold text-[#10B981]">{sponsorData.level}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Ubicación Asignada</p>

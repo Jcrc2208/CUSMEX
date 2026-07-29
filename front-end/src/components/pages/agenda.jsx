@@ -78,7 +78,7 @@ function persistFavoriteIds(ids) {
 
 function SessionCategoryBadge({ label, tone }) {
   const toneClasses = {
-    orange: 'bg-[#D80621]/10 text-[#D80621] border-[#D80621]/20',
+    orange: 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20',
     green: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
     blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
     purple: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',

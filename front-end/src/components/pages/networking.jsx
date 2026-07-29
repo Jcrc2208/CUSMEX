@@ -181,7 +181,7 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
   //Cambio de color match %
   const getMatchBadgeStyle = (percentage) => {
     if (percentage >= 90) {
-      return 'bg-[#D80621]/10 text-[#D80621] border border-[#D80621]/30';
+      return 'bg-[#22D3EE]/10 text-[#22D3EE] border border-[#22D3EE]/30';
     }
     if (percentage >= 80) {
       return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30';
@@ -272,14 +272,14 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                             <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold border ${getMatchBadgeStyle(profile.matchPercentage)}`}>
                               {profile.matchPercentage}% Match
                             </span>
-                            <span className="text-[10px] font-medium text-[#22D3EE] bg-[#22D3EE]/10 border border-[#22D3EE]/20 px-2 py-0.5 rounded-md">
+                            <span className="text-[10px] font-medium text-[#7C3AED] bg-[#7C3AED]/10 border border-[#7C3AED]/20 px-2 py-0.5 rounded-md">
                               Sugerido por IA
                             </span>
                           </div>
 
                           {profile.cvUrl && (
-                            <Button variant="outline" size="xs" className="text-[11px] text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/50 h-7 gap-1 font-medium">
-                              <FileText className="h-3.5 w-3.5" />
+                            <Button variant="outline" size="xs" className="text-[11px] text-[#D4AF37] border-[#D4AF37]/30 hover:bg-[#D4AF37]/10 h-7 gap-1 font-medium">
+  <FileText className="h-3.5 w-3.5" />
                               Ver CV
                             </Button>
                           )}
@@ -307,12 +307,12 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                       <CardContent className="p-5 pt-0 space-y-4">
                         <div className="space-y-2 text-xs border-t border-border/60 pt-3">
                           <div>
-                            <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider block mb-1.5">
-                              Ofrece
+                            <span className="text-[11px] font-semibold text-[#D4AF37] uppercase tracking-wider block mb-1.5">
+  Ofrece
                             </span>
                             <div className="flex flex-wrap gap-1.5">
                               {profile.offering.map((tag) => (
-                                <span key={tag} className="rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 px-2 py-0.5 text-[11px] font-medium border border-blue-200 dark:border-blue-800">
+                                <span key={tag} className="rounded-md bg-[#2563EB]/10 text-[#2563EB] px-2 py-0.5 text-[11px] font-medium border border-[#2563EB]/20">
                                   {tag}
                                 </span>
                               ))}
@@ -320,12 +320,12 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                           </div>
 
                           <div className="pt-1">
-                            <span className="text-[11px] font-semibold text-[#D80621] uppercase tracking-wider block mb-1.5">
+                            <span className="text-[11px] font-semibold text-[#10B981] uppercase tracking-wider block mb-1.5">
                               Busca
                             </span>
                             <div className="flex flex-wrap gap-1.5">
                               {profile.lookingFor.map((tag) => (
-                                <span key={tag} className="rounded-md bg-[#D80621]/10 text-[#D80621] px-2 py-0.5 text-[11px] font-medium border border-[#D80621]/20">
+                                <span key={tag} className="rounded-md bg-[#10B981]/10 text-[#10B981] px-2 py-0.5 text-[11px] font-medium border border-[#10B981]/20">
                                   {tag}
                                 </span>
                               ))}
@@ -518,9 +518,8 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                               
 
                               {profile.cvUrl && (
-                                <Button variant="outline" size="xs" className="text-[11px] text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/50 h-7 gap-1 font-medium">
-                                  <FileText className="h-3.5 w-3.5" />
-                                  Ver CV
+                                <Button variant="outline" size="xs" className="text-[11px] text-[#D4AF37] border-[#D4AF37]/30 hover:bg-[#D4AF37]/10 h-7 gap-1 font-medium"><FileText className="h-3.5 w-3.5" />
+                                Ver CV
                                 </Button>
                               )}
                             </div>
@@ -542,12 +541,12 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                           <CardContent className="p-5 pt-0 space-y-4">
                             <div className="space-y-2 text-xs border-t border-border/60 pt-3">
                               <div>
-                                <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider block mb-1.5">
-                                  Ofrece
-                                </span>
+                                <span className="text-[11px] font-semibold text-[#D4AF37] uppercase tracking-wider block mb-1.5">
+  Ofrece
+</span>
                                 <div className="flex flex-wrap gap-1.5">
                                   {profile.offering.map((tag) => (
-                                    <span key={tag} className="rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 px-2 py-0.5 text-[11px] font-medium border border-blue-200 dark:border-blue-800">
+                                     <span key={tag} className="rounded-md bg-[#2563EB]/10 text-[#2563EB] px-2 py-0.5 text-[11px] font-medium border border-[#2563EB]/20">
                                       {tag}
                                     </span>
                                   ))}
@@ -556,13 +555,13 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
 
                               <div className="pt-1">
                                 
-                                <span className="text-[11px] font-semibold text-[#D80621] uppercase tracking-wider block mb-1.5">
+                                <span className="text-[11px] font-semibold text-[#10B981] uppercase tracking-wider block mb-1.5">
                                   Busca
                                 </span>
                                 <div className="flex flex-wrap gap-1.5">
                                   {profile.lookingFor.map((tag) => (
                                   
-                                    <span key={tag} className="rounded-md bg-[#D80621]/10 text-[#D80621] px-2 py-0.5 text-[11px] font-medium border border-[#D80621]/20">
+                                    <span key={tag} className="rounded-md bg-[#10B981]/10 text-[#10B981] px-2 py-0.5 text-[11px] font-medium border border-[#10B981]/20">
                                       {tag}
                                     </span>
                                   ))}
