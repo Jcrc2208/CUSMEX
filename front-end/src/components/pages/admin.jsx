@@ -488,51 +488,66 @@ function UsersManager() {
   );
 }
 
-// --- 2. SUBCOMPONENTE: GENERADOR DE TOKENS ---
-function TokenGeneratorManager() {
-  const [generatedToken, setGeneratedToken] = useState('');
-  const [selectedRoleForToken, setSelectedRoleForToken] = useState('');
+export function TokenGeneratorManager() {
+  const [generatedTokenData, setGeneratedTokenData] = useState(null);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [selectedRole, setSelectedRole] = useState('Delegado');
 
+  // Estados del Formulario dentro del Modal
+  const [selectedRole, setSelectedRole] = useState('participante');
+  const [selectedOrganizacion, setSelectedOrganizacion] = useState('CUSMEX Trade Group');
+  const [puedeVotar, setPuedeVotar] = useState('si');
+
+  // Lista inicial de tokens
   const [tokenList, setTokenList] = useState([
-    { token: 'CUSMEX-8F92-A109', rol: 'Delegado', fecha: '2026-07-28', estado: 'Disponible' },
-    { token: 'CUSMEX-3K44-D806', rol: 'Administrador', fecha: '2026-07-27', estado: 'Usado' }
+    { 
+      token: 'CUSMEX-8F92-A109', 
+      rol: 'participante', 
+      organizacion: 'CUSMEX Trade Group', 
+      vota: 'si', 
+      fecha: '2026-07-28', 
+      estado: 'Disponible' 
+    },
+    { 
+      token: 'CUSMEX-3K44-D806', 
+      rol: 'admin', 
+      organizacion: 'Tech Global Corp', 
+      vota: 'no', 
+      fecha: '2026-07-27', 
+      estado: 'Usado' 
+    }
   ]);
 
-  // Se abre el modal de selección de rol
   const handleOpenRoleModal = () => {
     setShowRoleModal(true);
   };
 
-  // Confirmación y generación final del token con el rol asignado
+  // Confirmación y generación del token con todas sus propiedades
   const handleConfirmTokenGeneration = (e) => {
     e.preventDefault();
     const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
     const randomHex2 = Math.random().toString(36).substring(2, 6).toUpperCase();
     const newToken = `CUSMEX-${randomHex}-${randomHex2}`;
 
-    setGeneratedToken(newToken);
-    setSelectedRoleForToken(selectedRole);
+    const newTokenData = {
+      token: newToken,
+      rol: selectedRole,
+      organizacion: selectedOrganizacion,
+      vota: puedeVotar,
+      fecha: new Date().toISOString().split('T')[0],
+      estado: 'Disponible'
+    };
+
+    setGeneratedTokenData(newTokenData);
     setCopied(false);
 
-    setTokenList([
-      { 
-        token: newToken, 
-        rol: selectedRole, 
-        fecha: new Date().toISOString().split('T')[0], 
-        estado: 'Disponible' 
-      },
-      ...tokenList
-    ]);
-
+    setTokenList([newTokenData, ...tokenList]);
     setShowRoleModal(false);
   };
 
   const handleCopy = () => {
-    if (!generatedToken) return;
-    navigator.clipboard.writeText(generatedToken);
+    if (!generatedTokenData) return;
+    navigator.clipboard.writeText(generatedTokenData.token);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -542,7 +557,7 @@ function TokenGeneratorManager() {
       <div>
         <h3 className="text-base sm:text-lg font-semibold">Generador de Tokens de Acceso Primer Ingreso</h3>
         <p className="text-xs sm:text-sm text-muted-foreground">
-          Genera pases/tokens únicos asignados a un rol para que nuevos usuarios inicien sesión por primera vez.
+          Genera pases/tokens únicos asignados a un rol, organización y permisos de votación para el registro inicial.
         </p>
       </div>
 
@@ -550,7 +565,7 @@ function TokenGeneratorManager() {
         <CardHeader className="p-4 sm:p-6 pb-2">
           <CardTitle className="text-base">Emisión de Token</CardTitle>
           <CardDescription className="text-xs">
-            Haz clic en el botón para seleccionar un rol y crear un nuevo token válido para el registro inicial.
+            Haz clic en el botón para parametrizar el rol, organización y elegibilidad de voto para crear un nuevo token.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-2 space-y-4">
@@ -559,11 +574,19 @@ function TokenGeneratorManager() {
               <Key className="h-4 w-4" /> Generar Token
             </Button>
 
-            {generatedToken && (
-              <div className="flex items-center gap-2 w-full sm:w-auto bg-muted p-2 rounded-md border text-xs">
-                <span className="font-mono font-bold text-foreground tracking-wider">{generatedToken}</span>
-                <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-medium">
-                  {selectedRoleForToken}
+            {generatedTokenData && (
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto bg-muted p-2 rounded-md border text-xs">
+                <span className="font-mono font-bold text-foreground tracking-wider">
+                  {generatedTokenData.token}
+                </span>
+                <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-medium capitalize">
+                  {generatedTokenData.rol}
+                </span>
+                <span className="bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded text-[10px] font-medium">
+                  {generatedTokenData.organizacion}
+                </span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${generatedTokenData.vota === 'si' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
+                  Vota: {generatedTokenData.vota.toUpperCase()}
                 </span>
                 <Button variant="ghost" size="icon-sm" onClick={handleCopy}>
                   {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
@@ -572,6 +595,7 @@ function TokenGeneratorManager() {
             )}
           </div>
 
+          {/* HISTORIAL DE TOKENS */}
           <div className="pt-4 border-t">
             <h4 className="text-xs font-semibold mb-3">Historial Reciente de Tokens Generados</h4>
             <div className="overflow-x-auto border rounded-md">
@@ -579,7 +603,9 @@ function TokenGeneratorManager() {
                 <thead className="bg-muted/50 text-muted-foreground font-semibold">
                   <tr>
                     <th className="p-2.5">Token</th>
-                    <th className="p-2.5">Rol Asignado</th>
+                    <th className="p-2.5">Rol</th>
+                    <th className="p-2.5">Organización</th>
+                    <th className="p-2.5">¿Vota?</th>
                     <th className="p-2.5">Fecha Generación</th>
                     <th className="p-2.5">Estado</th>
                   </tr>
@@ -589,8 +615,14 @@ function TokenGeneratorManager() {
                     <tr key={idx} className="hover:bg-muted/20">
                       <td className="p-2.5 font-mono font-semibold">{t.token}</td>
                       <td className="p-2.5">
-                        <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-medium">
+                        <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-medium capitalize">
                           {t.rol}
+                        </span>
+                      </td>
+                      <td className="p-2.5 font-medium text-foreground">{t.organizacion}</td>
+                      <td className="p-2.5">
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase ${t.vota === 'si' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
+                          {t.vota}
                         </span>
                       </td>
                       <td className="p-2.5 text-muted-foreground">{t.fecha}</td>
@@ -608,31 +640,63 @@ function TokenGeneratorManager() {
         </CardContent>
       </Card>
 
-      {/* MODAL PARA SELECCIONAR EL ROL ANTES DE GENERAR */}
+      {/* MODAL PARA CONFIGURAR LAS PROPIEDADES DEL TOKEN */}
       {showRoleModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
           <Card className="w-full max-w-sm animate-in zoom-in-95">
             <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
-              <CardTitle className="text-base">Seleccionar Rol del Token</CardTitle>
+              <CardTitle className="text-base">Configuración del Token</CardTitle>
               <Button variant="ghost" size="icon-sm" onClick={() => setShowRoleModal(false)}>
                 <X className="h-4 w-4" />
               </Button>
             </CardHeader>
             <CardContent className="p-4 pt-0">
               <form onSubmit={handleConfirmTokenGeneration} className="space-y-4 text-xs">
-                <div>
-                  <label className="font-semibold block mb-1.5 text-muted-foreground">
-                    Elige el rol que heredará el usuario al canjear este token:
+                
+                {/* 1. SELECCIÓN DE ROL */}
+                <div className="space-y-1.5">
+                  <label className="font-semibold block text-muted-foreground">
+                    Rol asignado:
                   </label>
                   <select
-                    className="w-full border rounded-md p-2 bg-background text-xs"
+                    className="w-full border rounded-md p-2 bg-background text-xs focus:ring-1 focus:ring-primary"
                     value={selectedRole}
                     onChange={(e) => setSelectedRole(e.target.value)}
                   >
-                    <option value="Delegado">Delegado</option>
-                    <option value="Administrador">Administrador</option>
-                    <option value="Observador">Observador</option>
-                    <option value="Organizador">Organizador</option>
+                    <option value="admin">admin</option>
+                    <option value="participante">participante</option>
+                    <option value="patrocinador">patrocinador</option>
+                  </select>
+                </div>
+
+                {/* 2. SELECCIÓN DE ORGANIZACIÓN */}
+                <div className="space-y-1.5">
+                  <label className="font-semibold block text-muted-foreground">
+                    Organización:
+                  </label>
+                  <select
+                    className="w-full border rounded-md p-2 bg-background text-xs focus:ring-1 focus:ring-primary"
+                    value={selectedOrganizacion}
+                    onChange={(e) => setSelectedOrganizacion(e.target.value)}
+                  >
+                    <option value="CUSMEX Trade Group">CUSMEX Trade Group</option>
+                    <option value="Tech Global Corp">Tech Global Corp</option>
+                    <option value="AgroAgro S.A.">AgroAgro S.A.</option>
+                  </select>
+                </div>
+
+                {/* 3. ELEGIBLE PARA VOTAR */}
+                <div className="space-y-1.5">
+                  <label className="font-semibold block text-muted-foreground">
+                    ¿Es elegible para votar?
+                  </label>
+                  <select
+                    className="w-full border rounded-md p-2 bg-background text-xs focus:ring-1 focus:ring-primary"
+                    value={puedeVotar}
+                    onChange={(e) => setPuedeVotar(e.target.value)}
+                  >
+                    <option value="si">Sí</option>
+                    <option value="no">No</option>
                   </select>
                 </div>
 
