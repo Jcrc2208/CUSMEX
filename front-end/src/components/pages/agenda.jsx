@@ -240,7 +240,6 @@ function AgendaList({
           <Input
             type="search"
             className="pl-9 pr-3"
-            placeholder="Buscar por título o ponente..."
             value={searchQuery}
             onChange={(event) => onSearchChange?.(event.target.value)}
           />

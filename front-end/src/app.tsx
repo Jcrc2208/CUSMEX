@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ComponentType } from 'react';
 import ConfiUser from './components/pages/confi_user.jsx';
 import Login from './components/pages/login.jsx';
 import Inicio from './components/pages/inicio.jsx';
@@ -8,21 +8,22 @@ import Networking from './components/pages/networking.jsx';
 import Comites from './components/pages/comites.jsx';
 import Sponsors from './components/pages/sponsors.jsx';
 
-
-// Importa tu componente de Participantes o usa el Placeholder mientras lo desarrollas:
-// import Participantes from './components/pages/participantes.jsx'; 
-import ModulePlaceholder from './components/pages/module-placeholder.jsx';
-
 import {
   applyLanguage,
   getInitialLanguage,
 } from './components/pages/login-i18n';
 import {
   parseRouteFromHash,
-  isModuleAvailable,
 } from './config/platform-modules';
 
 const THEME_STORAGE_KEY = 'cusmex-theme';
+
+// Mapa de componentes directos por id de módulo
+const MODULE_MAP: Record<string, ComponentType<any>> = {
+  inicio: Inicio,
+  comites: Comites,
+  networking: Networking,
+};
 
 function getInitialTheme() {
   if (typeof window === 'undefined') return false;
@@ -43,10 +44,7 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
 
   useEffect(() => {
-    function handleHashChange() {
-      setRoute(parseRouteFromHash());
-    }
-
+    const handleHashChange = () => setRoute(parseRouteFromHash());
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
@@ -67,70 +65,33 @@ export default function App() {
     language,
     onLanguageChange: setLanguage,
     isDarkMode,
-    onToggleTheme: () => setIsDarkMode((value) => !value),
+    onToggleTheme: () => setIsDarkMode((prev) => !prev),
     onNavigate: handleNavigate,
   };
 
+  // Autenticación y Roles
   const isAuthenticated = !!localStorage.getItem('auth_token');
   const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
   const isAdmin = userRole === 'admin' || userRole === 'administrador';
+  const isSponsor = userRole === 'patrocinador' || isAdmin;
 
-  // 2. Render logic based on activeModule state
-  if (route.moduleId === 'confi_user') {
-    return (
-      <ConfiUser
-        language={language}
-        onLanguageChange={setLanguage}
-        isDarkMode={isDarkMode}
-        onToggleTheme={() => setIsDarkMode(!isDarkMode)}
-        onNavigate={handleNavigate}
-      />
-    );
-  }
-
-  // Configuracion inicial
-  if (route.moduleId == 'Configuración Inicial') {
+  // 1. Vistas especiales / Configuración pública
+  if (route.moduleId === 'confi_user' || route.moduleId === 'Configuración Inicial') {
     return <ConfiUser {...sharedProps} />;
   }
 
-  // Autenticación
+  // 2. Control de acceso
   if (!isAuthenticated) {
     return <Login {...sharedProps} />;
   }
 
-  // Enrutamiento según route.moduleId
-  if (route.moduleId === 'inicio') {
-    return <Inicio {...sharedProps} />;
-  }
-
-  // 🟢 AGREGADO: Módulo de Participantes
-  if (route.moduleId === 'participantes') {
-    // Si ya tienes un componente <Participantes />, cámbialo por este Placeholder:
-    return <ModulePlaceholder moduleId="participantes" {...sharedProps} />;
-  }
-
+  // 3. Módulos con lógica específica o props adicionales
   if (route.moduleId === 'agenda') {
     return <Agenda sessionId={route.sessionId} {...sharedProps} />;
   }
 
-  if (route.moduleId === 'comites') {
-    return <Comites {...sharedProps} />;
-  }   
-
-  if (route.moduleId === 'networking') {
-    return <Networking {...sharedProps} />;
-  }
-  
   if (route.moduleId === 'sponsors') {
-    const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
-    
-    // Si no es patrocinador ni administrador, lo regresamos a Inicio por seguridad
-    if (userRole !== 'patrocinador' && userRole !== 'admin' && userRole !== 'administrador') {
-      return <Inicio {...sharedProps} />; 
-    }
-    
-    // Si sí tiene permiso, cargamos el módulo
-    return <Sponsors {...sharedProps} />;
+    return isSponsor ? <Sponsors {...sharedProps} /> : <Inicio {...sharedProps} />;
   }
 
   if (route.moduleId === 'administracion') {
@@ -141,7 +102,12 @@ export default function App() {
     return <Admin {...sharedProps} />;
   }
 
-  // 🛡️ FALLBACK: Si la ruta no coincide con ninguna opción previa, renderiza Inicio
-  // (Esto evita que React retorne undefined si entran a un hash desconocido)
+  // 4. Módulos estándar (Inicio, Comités, Networking)
+  const TargetModule = MODULE_MAP[route.moduleId];
+  if (TargetModule) {
+    return <TargetModule {...sharedProps} />;
+  }
+
+  //FALLBACK: Si no coincide con ninguna ruta válida
   return <Inicio {...sharedProps} />;
 }

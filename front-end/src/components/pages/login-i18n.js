@@ -24,7 +24,7 @@ export const FEATURE_ICONS = {
 const PLATFORM_MODULES = [
   { id: 'confi_user', icon: UserCog },
   { id: 'inicio', icon: LayoutDashboard },
-  { id: 'participantes', icon: Users },
+  //{ id: 'participantes', icon: Users },
   { id: 'networking', icon: Handshake },
   { id: 'agenda', icon: CalendarDays },
   { id: 'comites', icon: Landmark },
@@ -93,12 +93,6 @@ export const COPY = {
     comingSoonScopeLabel: 'Incluirá:',
     backToInicio: 'Ir a Inicio',
     moduleScopes: {
-      participantes: [
-        'Perfil del usuario',
-        'Directorio de participantes',
-        'Empresas, organizaciones y gobiernos',
-        'Comités',
-      ],
       networking: [
         'Business Matchmaking',
         'Catálogo de empresas',
@@ -124,7 +118,6 @@ export const COPY = {
     moduleLabels: {
       confi_user: 'Configuración Inicial',
       inicio: 'Inicio',
-      participantes: 'Participantes',
       networking: 'Networking',
       agenda: 'Agenda',
       comites: 'Comités',
@@ -135,7 +128,6 @@ export const COPY = {
     modules: buildModules({
       confi_user: 'Configuración Inicial',
       inicio: 'Inicio',
-      participantes: 'Participantes',
       networking: 'Networking',
       agenda: 'Agenda',
       comites: 'Comités',
@@ -382,12 +374,6 @@ export const COPY = {
           'Gestiona usuarios del NATP por categoría, organización, país, idioma, acceso, permisos, comités y responsabilidades.',
       },
       {
-        id: 'portal-participante',
-        title: 'Portal de Participante',
-        description:
-          'Espacio personalizado con agenda, reuniones, documentos, comités, notificaciones, IA, votaciones, transcripciones y recomendaciones.',
-      },
-      {
         id: 'agenda',
         title: 'Sistema de Agenda',
         description:
@@ -438,7 +424,6 @@ export const COPY = {
     moduleScopes: {
       participantes: [
         'User profile',
-        'Participant directory',
         'Companies, organizations, and governments',
         'Committees',
       ],
@@ -463,7 +448,6 @@ export const COPY = {
     moduleLabels: {
       confi_user: 'Initial Setup',
       inicio: 'Home',
-      participantes: 'Participants',
       networking: 'Networking',
       agenda: 'Agenda',
       comites: 'Committees',
@@ -474,7 +458,6 @@ export const COPY = {
     modules: buildModules({
       confi_user: 'Initial Setup',
       inicio: 'Home',
-      participantes: 'Participants',
       networking: 'Networking',
       agenda: 'Agenda',
       comites: 'Committees',
@@ -489,7 +472,6 @@ export const COPY = {
       description:
         'Operational overview of the North American Trade Parliament: key metrics, quick access, upcoming meetings, and official event news.',
       stats: [
-        { id: 'participants', label: 'Registered participants', value: '1,240' },
         { id: 'meetings', label: 'Scheduled meetings', value: '86' },
         { id: 'companies', label: 'Connected companies', value: '312' },
         { id: 'countries', label: 'Countries represented', value: '18' },
@@ -775,12 +757,6 @@ export const COPY = {
     comingSoonScopeLabel: 'Comprendra :',
     backToInicio: 'Aller à Accueil',
     moduleScopes: {
-      participantes: [
-        'Profil utilisateur',
-        'Annuaire des participants',
-        'Entreprises, organisations et gouvernements',
-        'Comités',
-      ],
       networking: [
         'Business Matchmaking',
         'Catalogue d’entreprises',
@@ -802,7 +778,6 @@ export const COPY = {
     moduleLabels: {
       confi_user: 'Configuration Initial',
       inicio: 'Accueil',
-      participantes: 'Participants',
       networking: 'Networking',
       agenda: 'Agenda',
       comites: 'Comités',
@@ -813,7 +788,6 @@ export const COPY = {
     modules: buildModules({
       confi_user: 'Configuration Initial',
       inicio: 'Accueil',
-      participantes: 'Participants',
       networking: 'Networking',
       agenda: 'Agenda',
       comites: 'Comités',
@@ -828,7 +802,6 @@ export const COPY = {
       description:
         'Vue opérationnelle du North American Trade Parliament : indicateurs clés, accès rapides, prochaines réunions et actualités officielles.',
       stats: [
-        { id: 'participants', label: 'Participants inscrits', value: '1 240' },
         { id: 'meetings', label: 'Réunions programmées', value: '86' },
         { id: 'companies', label: 'Entreprises connectées', value: '312' },
         { id: 'countries', label: 'Pays représentés', value: '18' },
