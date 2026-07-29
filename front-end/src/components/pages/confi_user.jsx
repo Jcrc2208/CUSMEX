@@ -87,7 +87,7 @@ export default function ConfiUser({
     idioma_preferido: 'es',
 
     // Step 2: Organizaciones
-    organizacion_nombre: '', // se cmabio por nombre para cmabiar el tipo de dato leido 
+    organizacion_nombre: '',
 
     // Step 3: Perfil de Negocio + CV PDF
     interes_comercial: '',
@@ -103,7 +103,6 @@ export default function ConfiUser({
   // Manejo de cambios en los inputs (incluyendo autocompletado de correo)
   const handleInputChange = (field, value) => {
     if (field === 'emailPrefix') {
-      // Limpiamos de espacios y arrobas si el usuario los teclea
       const cleanPrefix = value.replace(/[\s@]/g, '');
       setFormData(prev => ({
         ...prev,
@@ -162,6 +161,7 @@ export default function ConfiUser({
 
     if (currentStep < totalSteps) {
       setCurrentStep(prev => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setShowTermsModal(true);
     }
@@ -170,6 +170,7 @@ export default function ConfiUser({
   const handlePrev = () => {
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 

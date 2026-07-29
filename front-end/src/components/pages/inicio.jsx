@@ -5,9 +5,12 @@ import {
   CalendarClock,
   CheckCircle2,
   Globe,
+  Handshake,
+  HeartHandshake,
   LayoutDashboard,
   ShieldCheck,
-  Sparkles,
+  Users,
+  UserCheck,
   Vote,
   XCircle,
 } from 'lucide-react';
@@ -24,7 +27,6 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
   // =========================================================================
 
   // 1. Datos del Usuario / Perfil
-  // BACKEND: Obtener desde `/api/v1/user/profile`
   const user = userProfile ?? {
     nombre: 'Carlos',
     apellido: 'Mendoza',
@@ -35,8 +37,17 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
     es_elegible_para_votar: true,
   };
 
-  // 2. Próximas Reuniones
-  // BACKEND: Query a la tabla `reuniones` filtradas por el usuario
+  // 2. Estadísticas Globales de la Plataforma
+  const estadisticas = {
+    usuariosRegistrados: 1250,
+    usuariosActivos: 840,
+    empresas: 180,
+    patrocinadores: 24,
+    paisesRepresentados: 12,
+    reunionesB2B: 320,
+  };
+
+  // 3. Próximas Reuniones
   const reuniones = [
     {
       id: 'r1',
@@ -52,8 +63,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
     },
   ];
 
-  // 3. Alertas de Votación
-  // BACKEND: Consultar votaciones activas para el rol/comité del usuario
+  // 4. Alertas de Votación
   const votacionesActivas = [
     {
       id: 'v1',
@@ -75,17 +85,16 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
     >
       <main className="max-w-7xl mx-auto px-3 sm:px-6 space-y-4 sm:space-y-6 pb-20 sm:pb-12 animate-in fade-in-0 duration-300">
         
-        {/* ENCABEZADO PERSONALIZADO - Responsivo para móvil */}
+        {/* ENCABEZADO PERSONALIZADO */}
         <div className="border-b border-border pb-3 pt-1">
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground leading-snug">
             Bienvenido, {user.nombre} {user.apellido}
           </h1>
         </div>
 
-        {/* TARJETA DE PERFIL INSTITUCIONAL (Layout adaptativo tipo grid móvil/mosaico) */}
+        {/* TARJETA DE PERFIL INSTITUCIONAL */}
         <Card className="border border-border bg-card shadow-sm overflow-hidden">
           <div className="p-3.5 sm:p-5">
-            {/* Header de la tarjeta */}
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-border/60">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-primary/10 text-primary shrink-0">
@@ -101,7 +110,6 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
                 </div>
               </div>
 
-              {/* Indicador de Elegibilidad (es_elegible_para_votar) */}
               <div>
                 {user.es_elegible_para_votar ? (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">
@@ -115,7 +123,6 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
               </div>
             </div>
 
-            {/* Datos en Mosaico responsivo (2 col en móvil, 4 col en desktop) */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
               <div className="bg-muted/30 p-2.5 rounded-lg border border-border/40">
                 <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Rol</p>
@@ -139,15 +146,81 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
               <div className="bg-muted/30 p-2.5 rounded-lg border border-border/40">
                 <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Estatus</p>
                 <p className="font-semibold text-[#10B981] text-xs sm:text-sm mt-0.5 truncate">
-  {user.estatusMembresia}
-</p>
-
+                  {user.estatusMembresia}
+                </p>
               </div>
             </div>
           </div>
         </Card>
 
-        {/* SECCIONES SECUNDARIAS (En columna para móvil, en Grid para pantallas más grandes) */}
+        {/* COMPONENTE COMPACTO DE MÉTRICAS (Un solo panel unificado) */}
+        <Card className="border border-border bg-card shadow-sm overflow-hidden">
+          <div className="p-3 sm:p-4 grid grid-cols-3 lg:grid-cols-6 divide-x divide-y lg:divide-y-0 divide-border/50 -m-3 sm:-m-4">
+            
+            {/* Metrica 1 */}
+            <div className="p-3 sm:p-4 flex flex-col justify-between">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Users className="w-3 h-3 text-primary shrink-0" /> Registrados
+              </span>
+              <p className="text-base sm:text-xl font-black text-foreground mt-1">
+                {estadisticas.usuariosRegistrados.toLocaleString()}
+              </p>
+            </div>
+
+            {/* Metrica 2 */}
+            <div className="p-3 sm:p-4 flex flex-col justify-between">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <UserCheck className="w-3 h-3 text-[#10B981] shrink-0" /> Activos
+              </span>
+              <p className="text-base sm:text-xl font-black text-[#10B981] mt-1">
+                {estadisticas.usuariosActivos.toLocaleString()}
+              </p>
+            </div>
+
+            {/* Metrica 3 */}
+            <div className="p-3 sm:p-4 flex flex-col justify-between">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Building2 className="w-3 h-3 text-primary shrink-0" /> Empresas
+              </span>
+              <p className="text-base sm:text-xl font-black text-foreground mt-1">
+                {estadisticas.empresas}
+              </p>
+            </div>
+
+            {/* Metrica 4 */}
+            <div className="p-3 sm:p-4 flex flex-col justify-between">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <HeartHandshake className="w-3 h-3 text-amber-500 shrink-0" /> Sponsors
+              </span>
+              <p className="text-base sm:text-xl font-black text-foreground mt-1">
+                {estadisticas.patrocinadores}
+              </p>
+            </div>
+
+            {/* Metrica 5 */}
+            <div className="p-3 sm:p-4 flex flex-col justify-between">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Globe className="w-3 h-3 text-[#22D3EE] shrink-0" /> Países
+              </span>
+              <p className="text-base sm:text-xl font-black text-[#22D3EE] mt-1">
+                {estadisticas.paisesRepresentados}
+              </p>
+            </div>
+
+            {/* Metrica 6 */}
+            <div className="p-3 sm:p-4 flex flex-col justify-between">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Handshake className="w-3 h-3 text-primary shrink-0" /> Citas B2B
+              </span>
+              <p className="text-base sm:text-xl font-black text-foreground mt-1">
+                {estadisticas.reunionesB2B}+
+              </p>
+            </div>
+
+          </div>
+        </Card>
+
+        {/* SECCIONES SECUNDARIAS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
 
           {/* PRÓXIMAS REUNIONES */}
@@ -196,7 +269,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground py-4 text-center">
-                  No tiene reuniones confirmadas programadas.
+                Utiliza Match para crear conexiones estratégicas y gestionar reuniones con otros usuarios.
                 </p>
               )}
             </CardContent>
@@ -217,19 +290,19 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
                   {votacionesActivas.map((votacion) => (
                     <div
                       key={votacion.id}
-                      className="p-3 rounded-lg border text-[#22D3EE] space-y-2"
+                      className="p-3 rounded-lg border border-border bg-muted/20 space-y-2"
                     >
                       <h4 className="font-bold text-xs text-foreground leading-snug">
                         {votacion.titulo}
                       </h4>
-                     <p className="text-[11px] text-[#22D3EE] font-medium">
+                      <p className="text-[11px] text-[#22D3EE] font-medium">
                         {votacion.fecha_cierre}
                       </p>
                       {votacion.puedeParticipar ? (
                         <button
                           type="button"
                           onClick={() => navigateToModule('votaciones')}
-                          className="w-full py-2 px-3 rounded-md  text-[#D80621], text-white text-xs font-bold transition-all text-center shadow-sm"
+                          className="w-full py-2 px-3 rounded-md bg-[#D80621] hover:bg-[#D80621]/90 text-white text-xs font-bold transition-all text-center shadow-sm"
                         >
                           Emitir Voto Ahora
                         </button>
@@ -250,7 +323,6 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
           </Card>
 
         </div>
-
 
       </main>
     </PlatformLayout>
