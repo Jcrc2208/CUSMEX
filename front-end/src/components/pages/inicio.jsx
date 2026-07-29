@@ -104,7 +104,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
               {/* Indicador de Elegibilidad (es_elegible_para_votar) */}
               <div>
                 {user.es_elegible_para_votar ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">
                     <CheckCircle2 className="w-3 h-3" /> Voto Habilitado
                   </span>
                 ) : (
@@ -138,7 +138,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
 
               <div className="bg-muted/30 p-2.5 rounded-lg border border-border/40">
                 <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Estatus</p>
-                <p className="font-semibold text-red-600 text-xs sm:text-sm mt-0.5 truncate">
+                <p className="font-semibold text-[#10B981] text-xs sm:text-sm mt-0.5 truncate">
   {user.estatusMembresia}
 </p>
 
@@ -206,7 +206,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
           <Card className="border border-border bg-card shadow-sm">
             <CardContent className="p-3.5 sm:p-5 space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-border/60">
-                <Vote className="w-4 h-4 text-[#D80621] shrink-0" />
+                <Vote className="w-4 h-4 text-[#22D3EE] shrink-0" />
                 <h3 className="text-sm sm:text-base font-bold text-foreground">
                   Alertas de Votación
                 </h3>
@@ -217,12 +217,12 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
                   {votacionesActivas.map((votacion) => (
                     <div
                       key={votacion.id}
-                      className="p-3 rounded-lg border text-[#D80621], text-[#D80621] space-y-2"
+                      className="p-3 rounded-lg border text-[#22D3EE] space-y-2"
                     >
                       <h4 className="font-bold text-xs text-foreground leading-snug">
                         {votacion.titulo}
                       </h4>
-                      <p className="text-[11px] text-[#D80621], text-[#D80621] font-medium">
+                     <p className="text-[11px] text-[#22D3EE] font-medium">
                         {votacion.fecha_cierre}
                       </p>
                       {votacion.puedeParticipar ? (

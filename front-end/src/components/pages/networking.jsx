@@ -272,7 +272,7 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
                             <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold border ${getMatchBadgeStyle(profile.matchPercentage)}`}>
                               {profile.matchPercentage}% Match
                             </span>
-                            <span className="text-[10px] font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/50 px-2 py-0.5 rounded-md">
+                            <span className="text-[10px] font-medium text-[#22D3EE] bg-[#22D3EE]/10 border border-[#22D3EE]/20 px-2 py-0.5 rounded-md">
                               Sugerido por IA
                             </span>
                           </div>
