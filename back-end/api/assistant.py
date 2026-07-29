@@ -7,7 +7,7 @@ def simular_registro_db():
     registro_simulado = {
         "id": 1042,
         "nombre": "juan carlos andres ",
-        "grado": "Ingeniero en Software",
+        "puesto": "Ingeniero en Software Jr.",
         "email": "jcrc2208@gmail.com",
     }
     return registro_simulado
