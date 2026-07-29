@@ -4,16 +4,44 @@ os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import Session, relationship
+from sqlalchemy import Column, Integer, String, Text, ForeignKey
 from pydantic import BaseModel, EmailStr
 import bcrypt
 from groq import Groq
 from faster_whisper import WhisperModel
+from typing import List
 
 from database import get_db, engine, Base, SessionLocal
 
-# 1. Definición del Modelo de Base de Datos
+
+
+
+# 1. Definición de Modelos de Base de Datos
+class Organizacion(Base):
+    __tablename__ = "organizaciones"
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String(250), unique=True, index=True, nullable=False)
+    pais = Column(String(100), nullable=False)
+    
+    perfil_negocio = relationship("PerfilNegocio", back_populates="organizacion", uselist=False)
+
+
+
+class PerfilNegocio(Base):
+    __tablename__ = "perfiles_negocio"
+    id = Column(Integer, primary_key=True, index=True)
+    organizacion_id = Column(Integer, ForeignKey("organizaciones.id"), nullable=False)
+    interes_comercial = Column(Text, nullable=False)
+    objetivos_inversion = Column(Text, nullable=False)
+    tipos_conexion = Column(Text, nullable=False)
+    comites = Column(Text, nullable=False)
+
+    organizacion = relationship("Organizacion", back_populates="perfil_negocio")
+
+
+
+
 class Usuario(Base):
     __tablename__ = "usuarios"
     id = Column(Integer, primary_key=True, index=True)
@@ -30,6 +58,8 @@ app = FastAPI(title="CUSMEX API")
 model_size = "base"
 Whisper_Model = WhisperModel(model_size, device="cpu", compute_type="int8")
 
+
+
 # 2. Configuración CORS
 app.add_middleware(
     CORSMiddleware,
@@ -38,6 +68,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 
 # 3. Sembrado inicial de datos (Poblado automático)
 def init_db():
@@ -71,8 +103,12 @@ def init_db():
 
 init_db()
 
+
+
+
 # CONFIGURACIÓN DEL CLIENTE GROQ (IA)
 client = Groq(api_key="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")
+
 
 # 4. Esquemas Pydantic
 class LoginRequest(BaseModel):
@@ -91,8 +127,22 @@ class ForgotPasswordSchema(BaseModel):
 
 class ActivateAccountSchema(BaseModel):
     token: str
-    email: EmailStr
+    email: str
     new_password: str
+
+class InitialSetupRequest(BaseModel):
+    nombre: str
+    email: EmailStr
+    password: str
+    organizacion_nombre: str
+    pais: str
+    interes_comercial: List[str]
+    objetivos_inversion: List[str]
+    tipos_conexion: List[str]
+    comites_participantes: List[str]
+    acepta_terminos: bool
+
+
 
 # Simulación temporal de base de datos de invitaciones
 INVITATIONS_DB = {
@@ -106,6 +156,8 @@ ROLE_EQUIVALENCES = {
     "administrador": ["admin", "administrador"],
     "admin": ["admin", "administrador"]
 }
+
+
 
 # 5. Endpoint de Login
 @app.post("/api/v1/auth/login")
@@ -138,6 +190,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         }
     }
 
+
 # 6. Endpoint de Chat con IA (Groq)
 @app.post("/api/chat")
 async def chat_with_ai(data: ChatRequest):
@@ -166,6 +219,8 @@ async def chat_with_ai(data: ChatRequest):
         print("Error en el cliente de Groq:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
 # 7. Endpoint de Recuperación de Contraseña
 @app.post("/api/v1/auth/forgot-password")
 async def forgot_password(data: ForgotPasswordSchema, db: Session = Depends(get_db)):
@@ -175,6 +230,8 @@ async def forgot_password(data: ForgotPasswordSchema, db: Session = Depends(get_
         pass
 
     return {"message": "Si el correo está registrado, se han enviado las instrucciones."}
+
+
 
 # 8. Endpoint de Activación de Cuenta por Token de Un Solo Uso
 @app.post("/api/v1/auth/activate-account")
@@ -214,20 +271,94 @@ async def activate_account(data: ActivateAccountSchema, db: Session = Depends(ge
         "message": "¡Cuenta habilitada con éxito! Ya puedes iniciar sesión de forma privada."
     }
 
-# 9. Endpoint de Asistente de Voz (Faster Whisper local + Groq LLM)
+
+
+# 9. Endpoint de Configuración Inicial y Registro Onboarding
+@app.post("/api/v1/setup/initial-onboarding", status_code=201)
+async def initial_onboarding(data: InitialSetupRequest, db: Session = Depends(get_db)):
+    if not data.acepta_terminos:
+        raise HTTPException(
+            status_code=400,
+            detail="Debe aceptar los términos y condiciones para completar la configuración."
+        )
+
+    existing_user = db.query(Usuario).filter(Usuario.correo == data.email.strip()).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="El correo electrónico ya se encuentra registrado en el sistema."
+        )
+
+    existing_org = db.query(Organizacion).filter(Organizacion.nombre == data.organizacion_nombre.strip()).first()
+    if existing_org:
+        raise HTTPException(
+            status_code=400,
+            detail="La organización ya se encuentra dada de alta."
+        )
+
+    try:
+        nueva_org = Organizacion(
+            nombre=data.organizacion_nombre.strip(),
+            pais=data.pais.strip()
+        )
+        db.add(nueva_org)
+        db.flush()
+
+        nuevo_perfil = PerfilNegocio(
+            organizacion_id=nueva_org.id,
+            interes_comercial=",".join(data.interes_comercial),
+            objetivos_inversion=",".join(data.objetivos_inversion),
+            tipos_conexion=",".join(data.tipos_conexion),
+            comites=",".join(data.comites_participantes)
+        )
+        db.add(nuevo_perfil)
+
+        raw_password = data.password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed_pw = bcrypt.hashpw(raw_password, salt).decode('utf-8')
+
+        nuevo_usuario = Usuario(
+            correo=data.email.strip(),
+            contraseña=hashed_pw,
+            Rol="empresas"
+        )
+        db.add(nuevo_usuario)
+
+        db.commit()
+        db.refresh(nuevo_usuario)
+
+        return {
+            "status": "success",
+            "message": "Configuración inicial y registro completados con éxito.",
+            "token": "token-jwt-inicial-generado",
+            "user": {
+                "id": nuevo_usuario.id,
+                "email": nuevo_usuario.correo,
+                "role": nuevo_usuario.Rol
+            }
+        }
+
+    except Exception as e:
+        db.rollback()
+        print("Error en el registro inicial:", str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error interno al procesar la configuración inicial: {str(e)}"
+        )
+
+
+
+# 10. Endpoint de Asistente de Voz (Faster Whisper local + Groq LLM)
 @app.post("/api/voice-assistant")
 async def voice_assistant(file: UploadFile = File(...), language: str = Form(...)):
     audio_path = f"temp_{file.filename}"
     try:
-        # 1. Guardar temporalmente el audio recibido
         with open(audio_path, "wb") as buffer:
             buffer.write(await file.read())
 
-        # 2. Transcribir localmente con faster-whisper (¡Cero costos!)
         segments, info = Whisper_Model.transcribe(audio_path, beam_size=5)
         user_text = " ".join([segment.text for segment in segments])
 
-        # 3. Procesar el texto transcrito con Groq (Llama 3.3) aplicando las reglas de CUSMEX
         system_instruction = (
             "Eres el asistente personal de CUSMEX. "
             "REGLAS ESTRICTAS:\n"
@@ -257,6 +388,5 @@ async def voice_assistant(file: UploadFile = File(...), language: str = Form(...
         raise HTTPException(status_code=500, detail=str(e))
         
     finally:
-        # Limpieza obligatoria del archivo temporal de audio
         if os.path.exists(audio_path):
             os.remove(audio_path)

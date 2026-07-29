@@ -1,0 +1,13 @@
+el modulo configuracion inicial solo faltaria cambiar paises, organizaciones , 
+perfil comercial seria cmabiar interes comercial , pbjetivos de invercion/proyectos y los tipos de conexion que buscan 
+comites necesitamos vereficar que tipo de comites participan  y  validar con los terminos de condiciones. 
+
+
+
+se llena estos datos y se hace unainyeccion a la base de datos , las tablas en esa inyeccion serian organizaciones, perfiles de negocio, usuarios, 
+
+se autentifica con el back y la consulta en esta tablas es decir solo c uando el usuario valide correctamente todos sus datos se cfrea esa consulta inicial y se valida en lase base de datos y ina vez llenado ese aparto ya puedes realizar un login , esta parte solo seria lpara el primer inicio con token 
+
+
+
+

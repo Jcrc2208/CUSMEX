@@ -98,7 +98,7 @@ export default function ConfiUser({
     idioma_preferido: 'es',
 
     // Step 2: Organizaciones
-    organizacion_id: '',
+    organizacion_nombre: '', // se cmabio por nombre para cmabiar el tipo de dato leido 
 
     // Step 3: Perfil de Negocio + CV PDF
     interes_comercial: '',
