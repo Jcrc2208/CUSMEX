@@ -492,86 +492,90 @@ export default function ConfiUser({
         </Card>
       </main>
 
-      {/* MODAL DE TÉRMINOS Y CONDICIONES */}
-      {showTermsModal && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-0 duration-300">
-          <div className="bg-card border border-border rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden">
-            
-            <div className="p-4 border-b border-border flex items-center justify-between bg-muted/40">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-primary" />
-                <h2 className="text-base font-bold text-foreground">Términos y Condiciones de Uso</h2>
-              </div>
-              <button 
-                onClick={() => setShowTermsModal(false)}
-                className="text-muted-foreground hover:text-foreground p-1 rounded-md transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="p-4 overflow-y-auto space-y-3 text-xs text-muted-foreground leading-relaxed flex-1">
-              <p className="font-semibold text-foreground">
-                Bienvenido a la plataforma NATP Oakland (North American Trade Partnership).
-              </p>
-              <p>
-                Al continuar y hacer uso de este sistema, aceptas cumplir con las reglas de interacción trilateral entre delegaciones de Canadá, Estados Unidos y México.
-              </p>
-              
-              <div className="space-y-1.5 bg-muted/30 p-3 rounded-lg border border-border">
-                <h3 className="font-semibold text-foreground flex items-center gap-1.5">
-                  <FileText className="h-3.5 w-3.5 text-primary" /> Puntos clave del acuerdo:
-                </h3>
-                <ul className="list-disc pl-4 space-y-1">
-                  <li><strong>Privacidad de datos:</strong> Tu información personal y perfil profesional serán procesados únicamente con fines de vinculación comercial B2B.</li>
-                  <li><strong>Uso responsable:</strong> El envío de mensajes directos y solicitudes de agenda debe limitarse a fines profesionales y de colaboración empresarial.</li>
-                  <li><strong>Confidencialidad:</strong> Los documentos restringidos compartidos en la plataforma son confidenciales.</li>
-                </ul>
-              </div>
-
-              <p>
-                Puedes consultar nuestra política completa de privacidad y tratamiento de datos personales en cualquier momento desde el menú de soporte de la plataforma.
-              </p>
-            </div>
-
-            <div className="p-4 border-t border-border bg-muted/20 space-y-3">
-              <label className="flex items-start gap-2.5 cursor-pointer select-none">
-                <input 
-                  type="checkbox"
-                  className="mt-0.5 rounded border-input text-primary focus:ring-primary h-4 w-4 accent-primary"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
-                />
-                <span className="text-xs text-foreground font-medium">
-                  He leído y acepto los <span className="text-primary underline">Términos y Condiciones</span> así como la Política de Privacidad de la plataforma.
-                </span>
-              </label>
-
-              <div className="flex gap-2 justify-end pt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowTermsModal(false)}
-                  className="text-xs"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={!acceptedTerms}
-                  onClick={handleConfirmTermsAndFinish}
-                  className="text-xs gap-1.5"
-                >
-                  Aceptar y Comenzar <CheckCircle2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </div>
-
-          </div>
+      {/* MODAL DE TÉRMINOS Y CONDICIONES - OPTIMIZADO Y SINTETIZADO */}
+{showTermsModal && (
+  <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in-0 duration-300">
+    <div className="bg-card border border-border rounded-xl shadow-xl w-full max-w-lg max-h-[70vh] sm:max-h-[80vh] flex flex-col overflow-hidden my-auto">
+      
+      {/* HEADER */}
+      <div className="p-3 sm:p-4 border-b border-border flex items-center justify-between bg-muted/40 shrink-0">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+          <h2 className="text-sm sm:text-base font-bold text-foreground">
+            Términos y Condiciones
+          </h2>
         </div>
-      )}
+        <button 
+          onClick={() => setShowTermsModal(false)}
+          className="text-muted-foreground hover:text-foreground p-1 rounded-md transition-colors shrink-0"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* BODY RESUMIDO CON SCROLL */}
+      <div className="p-3 sm:p-4 pr-2 overflow-y-auto space-y-2.5 text-[11px] sm:text-xs text-muted-foreground leading-relaxed flex-1">
+        <p className="font-medium text-foreground">
+          Al usar esta plataforma de <strong>CUSMEX</strong>, usted acepta los siguientes puntos clave:
+        </p>
+
+        <ul className="space-y-1.5 list-disc pl-4 text-muted-foreground">
+          <li><strong>Uso y Capacidad:</strong> Declara que su información es veraz y que usará el sistema de forma ética y conforme a la ley. Es responsable de la seguridad de sus credenciales.</li>
+          <li><strong>Propiedad de Datos:</strong> Conserva la propiedad de sus documentos, pero autoriza a CUSMEX a procesarlos únicamente para la prestación de los servicios. Queda prohibido subir datos bancarios o información confidencial no autorizada.</li>
+          <li><strong>Prohibiciones:</strong> No se permite la suplantación de identidad, manipulación de votaciones, extracción masiva de datos ni actividades fraudulentas. CUSMEX podrá suspender cuentas en caso de incumplimiento.</li>
+          <li><strong>Jurisdicción:</strong> Estos términos se rigen bajo las leyes aplicables de <strong>Alberta, Canadá</strong>.</li>
+        </ul>
+
+        {/* RECUADRO DE IA */}
+        <div className="bg-muted/30 p-2.5 rounded-lg border border-border space-y-1">
+          <h3 className="font-semibold text-foreground flex items-center gap-1.5 text-xs">
+            <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" /> Funciones de IA y Deslinde
+          </h3>
+          <p className="text-[10px] sm:text-[11px] leading-snug">
+            Las funciones de asistencia e IA (matchmaking, resúmenes, traducciones) son de carácter meramente informativo y no garantizan contratos o inversiones. Las decisiones finales son responsabilidad del usuario.
+          </p>
+        </div>
+      </div>
+
+      {/* FOOTER VISIBLE Y COMPACTO */}
+      <div className="p-3 sm:p-4 border-t border-border bg-muted/20 space-y-2.5 shrink-0">
+        <label className="flex items-start gap-2 cursor-pointer select-none">
+          <input 
+            type="checkbox"
+            className="mt-0.5 rounded border-input text-primary focus:ring-primary h-4 w-4 accent-primary shrink-0"
+            checked={acceptedTerms}
+            onChange={(e) => setAcceptedTerms(e.target.checked)}
+          />
+          <span className="text-[10px] sm:text-xs text-foreground font-medium leading-tight">
+            He leído y acepto los <span className="text-primary underline">Términos y Condiciones</span> y la Política de Privacidad de CUSMEX.
+          </span>
+        </label>
+
+        <div className="flex gap-2 justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowTermsModal(false)}
+            className="text-xs h-8 px-3"
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            disabled={!acceptedTerms}
+            onClick={handleConfirmTermsAndFinish}
+            className="text-xs h-8 px-3 gap-1.5"
+          >
+            Aceptar y Comenzar <CheckCircle2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+)}
     </PlatformLayout>
   );
 }
