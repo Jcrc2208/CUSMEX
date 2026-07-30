@@ -1112,9 +1112,9 @@ function MatchmakingManager() {
   return (
     <div className="space-y-6 animate-in fade-in-0 duration-500">
       <div>
-        <h3 className="text-base sm:text-lg font-semibold">Motor de Matchmaking B2B</h3>
+        <h3 className="text-base sm:text-lg font-semibold">Estadísticas de Matchmaking B2B</h3>
         <p className="text-xs sm:text-sm text-muted-foreground">
-          Algoritmos de emparejamiento inteligente entre delegaciones, empresas y compradores.
+         Consulta las principales métricas de reuniones.
         </p>
       </div>
 

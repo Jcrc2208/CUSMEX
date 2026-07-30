@@ -1,33 +1,31 @@
 import React from 'react';
 import { 
-  Landmark,
-  ShieldCheck, 
+  Landmark, 
   Clock, 
   FileText, 
-  Download, 
-  FileSignature, 
-  History,
-  Archive,
-  Vote
+  Users,
+  Vote,
+  Building2,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import PlatformLayout from '@/components/layout/platform-layout';
 import { COPY } from './login-i18n';
 
 // --- SUBCOMPONENTE: SISTEMA DE VOTACIONES ---
-function VotingSystem({ userRole, isVerified = true }) {
-  // Datos simulados de votaciones
+function VotingSystem({ userCommittee }) {
+  // Datos simulados de votaciones activas del comité
   const activeSessions = [
     {
       id: 1,
       title: "Resolución Organizacional: Adopción de IA en Logística",
       type: "Voto de Resolución",
-      scope: "Asamblea General",
+      scope: userCommittee?.name || "Comité de Comercio",
       quorumRequired: 75,
       quorumCurrent: 82,
       endTime: "00:45:00",
@@ -37,7 +35,7 @@ function VotingSystem({ userRole, isVerified = true }) {
       id: 2,
       title: "Enmienda a la Recomendación de Comercio Fronterizo",
       type: "Voto Consultivo",
-      scope: "Comité de Comercio",
+      scope: userCommittee?.name || "Comité de Comercio",
       quorumRequired: 60,
       quorumCurrent: 45, // Sin quórum
       endTime: "02:30:00",
@@ -47,170 +45,164 @@ function VotingSystem({ userRole, isVerified = true }) {
 
   return (
     <div className="space-y-6">
-      {/* Tarjeta de Elegibilidad */}
-      <Card className="bg-muted/30 border-blue-200 dark:border-blue-900 w-full">
-        <CardContent className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-4">
-            <ShieldCheck className={`h-8 w-8 ${isVerified ? 'text-emerald-500' : 'text-amber-500'}`} />
-            <div>
-              <p className="font-semibold text-sm leading-none mb-1">Estado de Delegado</p>
-              <p className="text-xs text-muted-foreground">
-                {isVerified ? 'Verificado - Elegible para votar' : 'Verificación pendiente'}
-              </p>
+      {/* TARJETA DEL COMITÉ AL QUE PERTENECE */}
+      <Card className="border border-[#2563EB]/20 bg-card shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2563EB]/10 text-[#2563EB]">
+                <Building2 className="h-5 w-5" />
+              </span>
+              <div>
+                <CardTitle className="text-xl font-bold text-foreground">
+                  {userCommittee.name}
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground">
+                  {userCommittee.role} · {userCommittee.institution}
+                </CardDescription>
+              </div>
             </div>
-          </div>
-          <div className="pl-4 border-l border-border hidden sm:block">
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-3 py-1.5 rounded-md">
-              Rol: {userRole || 'Delegado'}
+
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#10B981]/10 px-3 py-1 text-xs font-semibold text-[#10B981] border border-[#10B981]/20">
+              <span className="h-2 w-2 rounded-full bg-[#10B981] animate-pulse" />
+              Comité Activo
             </span>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {userCommittee.description}
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 border-t border-border/60 text-xs">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-[#22D3EE]" />
+              <div>
+                <span className="text-muted-foreground block">Miembros Integrantes:</span>
+                <span className="font-semibold text-foreground">{userCommittee.totalMembers} Delegados</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Vote className="h-4 w-4 text-[#7C3AED]" />
+              <div>
+                <span className="text-muted-foreground block">Sesiones Activas:</span>
+                <span className="font-semibold text-foreground">{activeSessions.length} Votaciones</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
+              <Clock className="h-4 w-4 text-[#D4AF37]" />
+              <div>
+                <span className="text-muted-foreground block">Próxima Reunión:</span>
+                <span className="font-semibold text-foreground">{userCommittee.nextMeeting}</span>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="activas" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 mb-6 p-1 bg-muted/50 rounded-lg">
-          <TabsTrigger value="activas" className="py-2.5 flex items-center gap-2 rounded-md">
-            <Vote className="h-4 w-4" />
-            <span className="hidden sm:inline">Votaciones Activas</span>
-          </TabsTrigger>
-          <TabsTrigger value="resultados" className="py-2.5 flex items-center gap-2 rounded-md">
-            <Archive className="h-4 w-4" />
-            <span className="hidden sm:inline">Registro y Resultados</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* SECCIÓN DE VOTACIONES ACTIVAS */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <Vote className="h-5 w-5 text-[#2563EB]" />
+            Votaciones Activas en tu Comité
+          </h2>
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#2563EB]/10 text-[#2563EB]">
+            {activeSessions.length} En Curso
+          </span>
+        </div>
 
-        {/* PESTAÑA 1: ACTIVAS */}
-        <TabsContent value="activas" className="mt-0 space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            {activeSessions.map((session) => {
-              const hasQuorum = session.quorumCurrent >= session.quorumRequired;
-              
-              return (
-                <Card key={session.id} className="relative overflow-hidden hover:border-primary/50 transition-colors">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider bg-muted px-2 py-1 rounded-md">
-                        {session.scope}
+        <div className="grid gap-4 md:grid-cols-2">
+          {activeSessions.map((session) => {
+            const hasQuorum = session.quorumCurrent >= session.quorumRequired;
+
+            return (
+              <Card 
+                key={session.id} 
+                className="relative overflow-hidden transition-all hover:border-[#2563EB]/50 shadow-sm flex flex-col justify-between"
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    {/* Cyan Institucional */}
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#22D3EE]/10 text-[#22D3EE] border border-[#22D3EE]/20">
+                      {session.scope}
+                    </span>
+
+                    {/* Morado Sobrio o Azul Institucional */}
+                    <span 
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                        session.isSecret 
+                          ? 'bg-[#7C3AED]/10 text-[#7C3AED] border-[#7C3AED]/20' 
+                          : 'bg-[#2563EB]/10 text-[#2563EB] border-[#2563EB]/20'
+                      }`}
+                    >
+                      {session.isSecret ? 'Voto Secreto' : 'Voto Abierto'}
+                    </span>
+                  </div>
+
+                  <CardTitle className="text-base leading-tight font-bold text-foreground">
+                    {session.title}
+                  </CardTitle>
+                  <CardDescription className="flex items-center gap-1 text-xs mt-1">
+                    <FileText className="h-3.5 w-3.5 text-muted-foreground" /> {session.type}
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-4 pt-2">
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground flex items-center gap-1">
+                        Quórum Verificado:
                       </span>
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${session.isSecret ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
-                        {session.isSecret ? 'Voto Secreto' : 'Voto Abierto'}
+                      {/* Verde Esmeralda si hay quórum, Dorado Suave si no */}
+                      <span 
+                        className={`font-semibold flex items-center gap-1 ${
+                          hasQuorum ? "text-[#10B981]" : "text-[#D4AF37]"
+                        }`}
+                      >
+                        {hasQuorum ? (
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                        ) : (
+                          <AlertCircle className="h-3.5 w-3.5" />
+                        )}
+                        {session.quorumCurrent}% / {session.quorumRequired}% req.
                       </span>
                     </div>
-                    <CardTitle className="text-lg leading-tight">{session.title}</CardTitle>
-                    <CardDescription className="flex items-center gap-1 text-xs mt-1">
-                      <FileText className="h-3 w-3" /> {session.type}
-                    </CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span>Quórum Verificado</span>
-                        <span className={hasQuorum ? "text-emerald-500 font-medium" : "text-amber-500 font-medium"}>
-                          {session.quorumCurrent}% / {session.quorumRequired}% req.
-                        </span>
-                      </div>
-                      <Progress value={session.quorumCurrent} className="h-1.5" />
+
+                    <Progress 
+                      value={session.quorumCurrent} 
+                      className="h-1.5"
+                      // Estilo dinámico para barra de progreso
+                      style={{
+                        '--progress-background': hasQuorum ? '#10B981' : '#D4AF37'
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-border/60">
+                    <div className="flex items-center gap-1.5 text-destructive text-xs font-semibold">
+                      <Clock className="h-4 w-4" />
+                      Cierra en {session.endTime}
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-border">
-                      <div className="flex items-center gap-1.5 text-destructive text-sm font-medium">
-                        <Clock className="h-4 w-4" />
-                        {session.endTime}
-                      </div>
-                      <Button disabled={!isVerified || !hasQuorum} size="sm">
-                        Emitir Voto
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </TabsContent>
-
-        {/* PESTAÑA 2: RESULTADOS */}
-        <TabsContent value="resultados" className="mt-0">
-          <div className="grid md:grid-cols-3 gap-6">
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Resolución Institucional #42</CardTitle>
-                  <span className="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded font-bold uppercase">
-                    Aprobada
-                  </span>
-                </div>
-                <CardDescription>Resultados Finales Diferidos</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm font-semibold">
-                    <span>A Favor (65%)</span>
-                    <span>130 Votos</span>
+                    {/* Azul Institucional en el botón */}
+                    <Button 
+                      disabled={!hasQuorum} 
+                      size="sm"
+                      className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-white font-semibold text-xs rounded-lg"
+                    >
+                      Emitir Voto
+                    </Button>
                   </div>
-                  <Progress value={65} className="h-3 [&>div]:bg-emerald-500" />
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm font-semibold">
-                    <span>En Contra (25%)</span>
-                    <span>50 Votos</span>
-                  </div>
-                  <Progress value={25} className="h-3 [&>div]:bg-red-500" />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm font-semibold text-muted-foreground">
-                    <span>Abstenciones (10%)</span>
-                    <span>20 Votos</span>
-                  </div>
-                  <Progress value={10} className="h-3 [&>div]:bg-slate-400" />
-                </div>
-
-                <div className="pt-4 border-t border-border">
-                   <Button variant="outline" className="w-full sm:w-auto gap-2">
-                     <Download className="h-4 w-4" />
-                     Exportar Reporte Oficial (.PDF)
-                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <History className="h-4 w-4" />
-                  Rastro de Auditoría
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="relative border-l-2 border-muted ml-3 space-y-6">
-                  <div className="relative pl-4">
-                    <span className="absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 border-background bg-primary"></span>
-                    <p className="text-xs font-semibold">Resultados Certificados</p>
-                    <p className="text-[10px] text-muted-foreground">24/07/2026 - 15:30 CST</p>
-                  </div>
-                  <div className="relative pl-4">
-                    <span className="absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 border-background bg-muted"></span>
-                    <p className="text-xs font-semibold">Ventana de votación cerrada</p>
-                    <p className="text-[10px] text-muted-foreground">24/07/2026 - 15:00 CST</p>
-                  </div>
-                  <div className="relative pl-4">
-                    <span className="absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 border-background bg-muted"></span>
-                    <p className="text-xs font-semibold">Quórum alcanzado (82%)</p>
-                    <p className="text-[10px] text-muted-foreground">24/07/2026 - 14:15 CST</p>
-                  </div>
-                </div>
-                
-                <div className="mt-6 pt-4 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">
-                  <FileSignature className="h-4 w-4 text-primary" />
-                  <span>Criptográficamente firmado por NATP Ledger</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
@@ -224,9 +216,16 @@ export default function Comites({
   onNavigate
 }) {
   const t = COPY[language] ?? COPY.es;
-  
-  // Obtenemos el rol para saber qué tipo de delegado es
-  const userRole = localStorage.getItem('user_role');
+
+  // Información del comité asignado al usuario
+  const userCommittee = {
+    name: "Comité de Comercio e Integración Logística",
+    role: "Delegado Titular",
+    institution: "North American Trade Parliament",
+    description: "Órgano encargado de dictaminar resoluciones transfronterizas, optimización de cadenas de suministro regionales y políticas de facilitación comercial.",
+    totalMembers: 28,
+    nextMeeting: "Mañana, 10:00 CST",
+  };
 
   return (
     <PlatformLayout
@@ -239,21 +238,11 @@ export default function Comites({
       badgeLabel={t.moduleLabels.comites}
       onNavigate={onNavigate}
     >
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
-        
-        {/* Cabecera del módulo */}
-        <header className="space-y-3">
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
-            Comités y Votaciones
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-            Centro de decisiones del North American Trade Parliament. Gestiona tus votos consultivos, resoluciones organizacionales y revisa el historial certificado de la Asamblea.
-          </p>
-        </header>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
 
-        {/* Instanciamos el sistema de votaciones aquí */}
-        <VotingSystem userRole={userRole} isVerified={true} />
-        
+
+        {/* Instanciamos el sistema de votaciones simplificado */}
+        <VotingSystem userCommittee={userCommittee} />
       </main>
     </PlatformLayout>
   );
