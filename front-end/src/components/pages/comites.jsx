@@ -1,113 +1,99 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Landmark, 
-  Clock, 
-  FileText, 
-  Users,
-  Vote,
-  Building2,
-  CheckCircle2,
-  AlertCircle
+  Calendar,
+  ThumbsUp,
+  ThumbsDown,
+  MinusCircle
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 
 import PlatformLayout from '@/components/layout/platform-layout';
 import { COPY } from './login-i18n';
 
-// --- SUBCOMPONENTE: SISTEMA DE VOTACIONES ---
+// --- SUBCOMPONENTE: SISTEMA DE VOTACIONES Y DATOS DEL COMITÉ ---
 function VotingSystem({ userCommittee }) {
-  // Datos simulados de votaciones activas del comité
+  // Estado para simular la selección o registro del voto por cada tarjeta
+  const [userVotes, setUserVotes] = useState({});
+
+  // Datos de votaciones
   const activeSessions = [
     {
       id: 1,
       title: "Resolución Organizacional: Adopción de IA en Logística",
+      description: "Propuesta para implementar un marco estándar regional en el uso de inteligencia artificial para la automatización de aduanas y optimización de cadenas de suministro.",
       type: "Voto de Resolución",
-      scope: userCommittee?.name || "Comité de Comercio",
-      quorumRequired: 75,
-      quorumCurrent: 82,
-      endTime: "00:45:00",
-      isSecret: true,
+      startDate: "2026-07-28 09:00",
+      endDate: "2026-07-31 18:00",
     },
     {
       id: 2,
       title: "Enmienda a la Recomendación de Comercio Fronterizo",
+      description: "Revisión de la cláusula de homologación de aranceles para insumos tecnológicos en zonas franja de intercambio bilateral.",
       type: "Voto Consultivo",
-      scope: userCommittee?.name || "Comité de Comercio",
-      quorumRequired: 60,
-      quorumCurrent: 45, // Sin quórum
-      endTime: "02:30:00",
-      isSecret: false,
+      startDate: "2026-07-29 10:00",
+      endDate: "2026-08-01 15:00",
     }
   ];
 
+  const handleCastVote = (sessionId, voteType) => {
+    setUserVotes((prev) => ({ ...prev, [sessionId]: voteType }));
+  };
+
   return (
     <div className="space-y-6">
-      {/* TARJETA DEL COMITÉ AL QUE PERTENECE */}
-      <Card className="border border-[#2563EB]/20 bg-card shadow-sm">
-        <CardHeader className="pb-3">
+      {/* INFORMACIÓN DEL COMITÉ (TEXTO) + METRICAS (TARJETAS MÁS PEQUEÑAS Y AL LADO) */}
+      <div className="space-y-4">
+        {/* Encabezado y Descripción limpia */}
+        <div className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2563EB]/10 text-[#2563EB]">
-                <Building2 className="h-5 w-5" />
-              </span>
-              <div>
-                <CardTitle className="text-xl font-bold text-foreground">
-                  {userCommittee.name}
-                </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  {userCommittee.role} · {userCommittee.institution}
-                </CardDescription>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">
+                {userCommittee.name}
+              </h1>
+              <p className="text-xs font-medium text-muted-foreground">
+                {userCommittee.role} · {userCommittee.institution}
+              </p>
             </div>
-
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#10B981]/10 px-3 py-1 text-xs font-semibold text-[#10B981] border border-[#10B981]/20">
-              <span className="h-2 w-2 rounded-full bg-[#10B981] animate-pulse" />
-              Comité Activo
-            </span>
           </div>
-        </CardHeader>
 
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-4xl pt-1">
             {userCommittee.description}
           </p>
+        </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 border-t border-border/60 text-xs">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-[#22D3EE]" />
-              <div>
-                <span className="text-muted-foreground block">Miembros Integrantes:</span>
-                <span className="font-semibold text-foreground">{userCommittee.totalMembers} Delegados</span>
-              </div>
-            </div>
+        {/* Métricas: Reducidas de tamaño y una al lado de la otra (grid-cols-2) sin iconos */}
+        <div className="grid grid-cols-2 gap-3 pt-1">
+          <Card className="border border-border/80 bg-card shadow-sm hover:border-[#22D3EE]/50 transition-colors">
+            <CardContent className="p-2.5">
+              <span className="text-[11px] text-muted-foreground font-medium block leading-none">
+                Miembros Integrantes
+              </span>
+              <span className="text-sm font-bold text-foreground leading-tight mt-1 block">
+                {userCommittee.totalMembers} Delegados
+              </span>
+            </CardContent>
+          </Card>
 
-            <div className="flex items-center gap-2">
-              <Vote className="h-4 w-4 text-[#7C3AED]" />
-              <div>
-                <span className="text-muted-foreground block">Sesiones Activas:</span>
-                <span className="font-semibold text-foreground">{activeSessions.length} Votaciones</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
-              <Clock className="h-4 w-4 text-[#D4AF37]" />
-              <div>
-                <span className="text-muted-foreground block">Próxima Reunión:</span>
-                <span className="font-semibold text-foreground">{userCommittee.nextMeeting}</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          <Card className="border border-border/80 bg-card shadow-sm hover:border-[#7C3AED]/50 transition-colors">
+            <CardContent className="p-2.5">
+              <span className="text-[11px] text-muted-foreground font-medium block leading-none">
+                Sesiones Activas
+              </span>
+              <span className="text-sm font-bold text-foreground leading-tight mt-1 block">
+                {activeSessions.length} Votaciones
+              </span>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {/* SECCIÓN DE VOTACIONES ACTIVAS */}
-      <div className="space-y-4">
+      <div className="space-y-4 pt-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Vote className="h-5 w-5 text-[#2563EB]" />
+          <h2 className="text-lg font-bold text-foreground">
             Votaciones Activas en tu Comité
           </h2>
           <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#2563EB]/10 text-[#2563EB]">
@@ -117,7 +103,7 @@ function VotingSystem({ userCommittee }) {
 
         <div className="grid gap-4 md:grid-cols-2">
           {activeSessions.map((session) => {
-            const hasQuorum = session.quorumCurrent >= session.quorumRequired;
+            const currentVote = userVotes[session.id];
 
             return (
               <Card 
@@ -125,77 +111,82 @@ function VotingSystem({ userCommittee }) {
                 className="relative overflow-hidden transition-all hover:border-[#2563EB]/50 shadow-sm flex flex-col justify-between"
               >
                 <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    {/* Cyan Institucional */}
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#22D3EE]/10 text-[#22D3EE] border border-[#22D3EE]/20">
-                      {session.scope}
-                    </span>
-
-                    {/* Morado Sobrio o Azul Institucional */}
-                    <span 
-                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
-                        session.isSecret 
-                          ? 'bg-[#7C3AED]/10 text-[#7C3AED] border-[#7C3AED]/20' 
-                          : 'bg-[#2563EB]/10 text-[#2563EB] border-[#2563EB]/20'
-                      }`}
-                    >
-                      {session.isSecret ? 'Voto Secreto' : 'Voto Abierto'}
-                    </span>
-                  </div>
-
                   <CardTitle className="text-base leading-tight font-bold text-foreground">
                     {session.title}
                   </CardTitle>
-                  <CardDescription className="flex items-center gap-1 text-xs mt-1">
-                    <FileText className="h-3.5 w-3.5 text-muted-foreground" /> {session.type}
+                  
+                  {/* Tipo de Votación (sin icono) */}
+                  <CardDescription className="text-xs mt-1 font-medium text-foreground/80">
+                    Tipo: {session.type}
                   </CardDescription>
+
+                  {/* Descripción */}
+                  <p className="text-xs text-muted-foreground leading-relaxed pt-2">
+                    {session.description}
+                  </p>
                 </CardHeader>
 
                 <CardContent className="space-y-4 pt-2">
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground flex items-center gap-1">
-                        Quórum Verificado:
-                      </span>
-                      {/* Verde Esmeralda si hay quórum, Dorado Suave si no */}
-                      <span 
-                        className={`font-semibold flex items-center gap-1 ${
-                          hasQuorum ? "text-[#10B981]" : "text-[#D4AF37]"
-                        }`}
-                      >
-                        {hasQuorum ? (
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                        ) : (
-                          <AlertCircle className="h-3.5 w-3.5" />
-                        )}
-                        {session.quorumCurrent}% / {session.quorumRequired}% req.
-                      </span>
+                  {/* Fecha Inicio y Fecha Fin */}
+                  <div className="grid grid-cols-2 gap-2 p-2.5 rounded-lg bg-muted/40 text-[11px] border border-border/50">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Calendar className="h-3.5 w-3.5 text-[#2563EB] shrink-0" />
+                      <div>
+                        <span className="block text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70">Inicio</span>
+                        <span className="font-semibold text-foreground">{session.startDate}</span>
+                      </div>
                     </div>
-
-                    <Progress 
-                      value={session.quorumCurrent} 
-                      className="h-1.5"
-                      // Estilo dinámico para barra de progreso
-                      style={{
-                        '--progress-background': hasQuorum ? '#10B981' : '#D4AF37'
-                      }}
-                    />
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Calendar className="h-3.5 w-3.5 text-destructive shrink-0" />
+                      <div>
+                        <span className="block text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70">Fin</span>
+                        <span className="font-semibold text-foreground">{session.endDate}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-border/60">
-                    <div className="flex items-center gap-1.5 text-destructive text-xs font-semibold">
-                      <Clock className="h-4 w-4" />
-                      Cierra en {session.endTime}
-                    </div>
+                  {/* Botones de Emisión de Voto (A Favor, Abstención, En Contra) */}
+                  <div className="pt-3 border-t border-border/60 space-y-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button 
+                        size="sm"
+                        onClick={() => handleCastVote(session.id, 'favor')}
+                        className={`font-semibold text-xs rounded-lg flex items-center justify-center gap-1.5 h-9 transition-colors ${
+                          currentVote === 'favor' 
+                            ? 'bg-[#10B981] text-white hover:bg-[#10B981]/90' 
+                            : 'bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20 border border-[#10B981]/30'
+                        }`}
+                      >
+                        <ThumbsUp className="h-3.5 w-3.5 shrink-0" />
+                        <span>A Favor</span>
+                      </Button>
 
-                    {/* Azul Institucional en el botón */}
-                    <Button 
-                      disabled={!hasQuorum} 
-                      size="sm"
-                      className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-white font-semibold text-xs rounded-lg"
-                    >
-                      Emitir Voto
-                    </Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => handleCastVote(session.id, 'abstencion')}
+                        className={`font-semibold text-xs rounded-lg flex items-center justify-center gap-1.5 h-9 transition-colors ${
+                          currentVote === 'abstencion' 
+                            ? 'bg-[#D4AF37] text-white hover:bg-[#D4AF37]/90' 
+                            : 'bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20 border border-[#D4AF37]/30'
+                        }`}
+                      >
+                        <MinusCircle className="h-3.5 w-3.5 shrink-0" />
+                        <span>Abstención</span>
+                      </Button>
+
+                      <Button 
+                        size="sm"
+                        onClick={() => handleCastVote(session.id, 'contra')}
+                        className={`font-semibold text-xs rounded-lg flex items-center justify-center gap-1.5 h-9 transition-colors ${
+                          currentVote === 'contra' 
+                            ? 'bg-destructive text-white hover:bg-destructive/90' 
+                            : 'bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/30'
+                        }`}
+                      >
+                        <ThumbsDown className="h-3.5 w-3.5 shrink-0" />
+                        <span>En Contra</span>
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -224,7 +215,6 @@ export default function Comites({
     institution: "North American Trade Parliament",
     description: "Órgano encargado de dictaminar resoluciones transfronterizas, optimización de cadenas de suministro regionales y políticas de facilitación comercial.",
     totalMembers: 28,
-    nextMeeting: "Mañana, 10:00 CST",
   };
 
   return (
@@ -239,9 +229,6 @@ export default function Comites({
       onNavigate={onNavigate}
     >
       <main className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
-
-
-        {/* Instanciamos el sistema de votaciones simplificado */}
         <VotingSystem userCommittee={userCommittee} />
       </main>
     </PlatformLayout>
