@@ -1,9 +1,6 @@
 import bcrypt
 
-clave = b"admin123"
-# Generamos el hash criptográfico real
-hash_real = bcrypt.hashpw(clave, bcrypt.gensalt())
-
-print("\nCopia el siguiente hash (sin espacios extra):")
-print(hash_real.decode('utf-8'))
-print("\n")
+# Genera el hash real y válido para la contraseña '123456'
+password = "123456".encode('utf-8')
+hashed = bcrypt.hashpw(password, bcrypt.gensalt()).decode('utf-8')
+print("Copia este hash:", hashed)

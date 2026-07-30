@@ -78,6 +78,9 @@ export default function Login({
       if (response.ok) {
         localStorage.setItem('auth_token', data.token)
         localStorage.setItem('user_role', data.user.role)
+        localStorage.setItem('userRole', data.user.role)
+        localStorage.setItem('userName', data.user.name)
+
         console.log('✅ Login exitoso:', data);
         navigateToModule('inicio');
       } else {
@@ -286,9 +289,6 @@ const handlePasswordReset = async (email) => {
 >
   {t.forgotPassword}
 </a>
-
-
-
               </div>
               </form>
             </CardContent>

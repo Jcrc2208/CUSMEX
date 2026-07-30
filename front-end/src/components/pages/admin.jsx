@@ -50,18 +50,18 @@ function UsersManager() {
   const [languageFilter, setLanguageFilter] = useState('todos');
   const [voteFilter, setVoteFilter] = useState('todos');
 
-  const [newUser, setNewUser] = useState({
-    rol_id: '',
-    organizacion_id: '',
-    nombre: '',
-    apellido: '',
-    email: '',
-    password_hash: '',
-    pais: '',
-    idioma_preferido: 'es',
-    es_elegible_para_votar: false,
-    estatus_membresia: 'activo',
-  });
+const [newUser, setNewUser] = useState({
+  nombre: '',
+  apellido: '',
+  email: '',
+  password_hash: '',
+  pais: '',
+  rol_id: 'B0788339-4704-4211-9257-285628452174',       // <--- UUID del admin por defecto
+  organizacion_id: '13658a1b-8c61-11f1-ad59-021b1b24cd02', // <--- UUID de la org por defecto
+  idioma_preferido: 'es',
+  estatus_membresia: 'activo',
+  es_elegible_para_votar: false
+});
 
   const [usersList, setUsersList] = useState([
     {
@@ -114,32 +114,58 @@ function UsersManager() {
     setActiveUserMenu(null);
   };
 
-  const handleCreateUser = (e) => {
+  const handleCreateUser = async (e) => {
     e.preventDefault();
     if (!newUser.nombre || !newUser.email) return;
 
-    setUsersList([
-      ...usersList,
-      {
-        ...newUser,
-        id: `u-${Date.now()}`,
-        rol_nombre: newUser.rol_id || 'Delegado',
-        organizacion_nombre: newUser.organizacion_id || 'Organización N/A'
+    try {
+      const response = await fetch("http://localhost:8000/api/v1/admin/usuarios", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre: newUser.nombre,
+          apellido: newUser.apellido || "N/A",
+          email: newUser.email,
+          password: newUser.password_hash || "temporal123",
+          pais: newUser.pais || "México",
+          rol_id: newUser.rol_id,
+          organizacion_id: newUser.organizacion_id,
+          idioma_preferido: newUser.idioma_preferido || "es",
+          estatus_membresia: newUser.estatus_membresia || "activo",
+          es_elegible_para_votar: newUser.es_elegible_para_votar || false
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Error al registrar el usuario en el servidor");
       }
-    ]);
-    setShowAddModal(false);
-    setNewUser({
-      rol_id: '',
-      organizacion_id: '',
-      nombre: '',
-      apellido: '',
-      email: '',
-      password_hash: '',
-      pais: '',
-      idioma_preferido: 'es',
-      es_elegible_para_votar: false,
-      estatus_membresia: 'activo',
-    });
+
+      setShowAddModal(false);
+      setNewUser({
+        rol_id: '',
+        organizacion_id: '',
+        nombre: '',
+        apellido: '',
+        email: '',
+        password_hash: '',
+        pais: '',
+        idioma_preferido: 'es',
+        es_elegible_para_votar: false,
+        estatus_membresia: 'activo',
+      });
+      
+      if (typeof fetchUsuarios === "function") {
+        fetchUsuarios();
+      }
+
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Hubo un error al guardar: " + error.message);
+    }
   };
 
   const resetFilters = () => {
@@ -494,8 +520,8 @@ export function TokenGeneratorManager() {
   const [copied, setCopied] = useState(false);
 
   // Estados del Formulario dentro del Modal
-  const [selectedRole, setSelectedRole] = useState('participante');
-  const [selectedOrganizacion, setSelectedOrganizacion] = useState('CUSMEX Trade Group');
+  const [selectedRole, setSelectedRole] = useState('B0788339-4704-4211-9257-285628452174');
+  const [selectedOrganizacion, setSelectedOrganizacion] = useState('13658a1b-8c61-11f1-ad59-021b1b24cd02');
   const [puedeVotar, setPuedeVotar] = useState('si');
 
   // Lista inicial de tokens
@@ -679,7 +705,7 @@ export function TokenGeneratorManager() {
                     value={selectedOrganizacion}
                     onChange={(e) => setSelectedOrganizacion(e.target.value)}
                   >
-                    <option value="CUSMEX Trade Group">CUSMEX Trade Group</option>
+                    <option value="13658a1b-8c61-11f1-ad59-021b1b24cd02">CUSMEX Trade Group</option>
                     <option value="Tech Global Corp">Tech Global Corp</option>
                     <option value="AgroAgro S.A.">AgroAgro S.A.</option>
                   </select>
