@@ -40,6 +40,8 @@ import PlatformLayout from '@/components/layout/platform-layout';
 // --- 1. SUBCOMPONENTE: GESTIÓN DE USUARIOS Y ROLES ---
 // --- 1. SUBCOMPONENTE: GESTIÓN DE USUARIOS Y ROLES ---
 function UsersManager() {
+  // Estado para almacenar el usuario recién creado de forma temporal
+  const [recentlyCreatedUser, setRecentlyCreatedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -55,6 +57,9 @@ function UsersManager() {
   const [usersList, setUsersList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Paginación para la tabla de tokens
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [newUser, setNewUser] = useState({
     nombre: '',
@@ -138,6 +143,18 @@ function UsersManager() {
       });
 
       const data = await response.json();
+      if (!response.ok) {
+  throw new Error(data.detail || "Error al registrar el usuario");
+}
+
+setShowAddModal(false);
+setRecentlyCreatedUser(data); // <--- Asignar los datos del usuario creado
+setHasSearched(false);        // <--- Asegura que la tarjeta banner sea visible
+
+// Opcional: Ocultar automáticamente en 10 segundos
+setTimeout(() => {
+  setRecentlyCreatedUser(null);
+}, 10000);
 
       if (!response.ok) {
         throw new Error(data.detail || "Error al registrar el usuario en el servidor");
@@ -303,106 +320,155 @@ function UsersManager() {
         </Button>
       </div>
 
-      {/* CONTENEDOR PRINCIPAL: Mensaje o Resultados de la Tabla */}
-      <Card>
-        <CardContent className="p-6">
-          {!hasSearched ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
-              <div className="p-3 bg-muted rounded-full text-muted-foreground">
-                <Filter className="h-6 w-6" />
-              </div>
-              <p className="text-sm font-medium text-foreground">
-                Usa el botón de filtrado para buscar usuarios y realizar acciones en ellos.
-              </p>
-              <p className="text-xs text-muted-foreground max-w-sm">
-                Aplica parámetros por rol, país, idioma o elegibilidad de voto para realizar una consulta a la base de datos.
-              </p>
-            </div>
-          ) : isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
-              <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">Consultando base de datos...</p>
-            </div>
-          ) : usersList.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center space-y-2">
-              <UserX className="h-6 w-6 text-muted-foreground" />
-              <p className="text-sm font-medium text-foreground">No se encontraron usuarios</p>
-              <p className="text-xs text-muted-foreground">
-                Intenta ajustar o limpiar los filtros seleccionados para obtener resultados.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto border rounded-md">
-              <table className="w-full text-xs text-left min-w-[600px]">
-                <thead className="bg-muted/50 text-muted-foreground font-semibold">
-                  <tr>
-                    <th className="p-3">Usuario / Email</th>
-                    <th className="p-3">Organización / País</th>
-                    <th className="p-3">Rol / Membresía</th>
-                    <th className="p-3">Voto Elegible</th>
-                    <th className="p-3 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {usersList.map((u) => (
-                    <tr key={u.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="p-3">
-                        <p className="font-semibold text-foreground">{u.nombre} {u.apellido}</p>
-                        <p className="text-[11px] text-muted-foreground">{u.email}</p>
-                      </td>
-                      <td className="p-3">
-                        <p className="font-medium">{u.organizacion_nombre || 'N/A'}</p>
-                        <p className="text-[11px] text-muted-foreground">{u.pais} • Idioma: {u.idioma_preferido?.toUpperCase()}</p>
-                      </td>
-                      <td className="p-3 space-y-1">
-                        <span className="inline-block bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-medium">
-                          {u.rol_nombre || 'Sin Rol'}
-                        </span>
-                        <div>
-                          <span className={`text-[10px] uppercase font-bold ${u.estatus_membresia === 'activo' ? 'text-emerald-600' : 'text-[#D80621]'}`}>
-                            • {u.estatus_membresia}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        {u.es_elegible_para_votar ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-600 text-[11px] font-medium">
-                            <UserCheck className="h-3.5 w-3.5" /> Sí
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-[11px]">No</span>
-                        )}
-                      </td>
-                      <td className="p-3 text-right relative">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => setActiveUserMenu(activeUserMenu === u.id ? null : u.id)}
-                        >
-                          <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                        </Button>
+     {/* CONTENEDOR PRINCIPAL: Mensaje o Resultados de la Tabla */}
+<Card>
+  <CardContent className="p-6">
+    {/* 1. USUARIO RECIÉN CREADO (Se muestra sólo si no hay búsqueda activa y existe un nuevo usuario) */}
+    {recentlyCreatedUser && !hasSearched ? (
+      <div className="space-y-4">
+        {/* Banner de confirmación */}
+        <div className="p-4 border border-emerald-500/30 bg-emerald-500/10 rounded-lg animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Usuario creado recientemente (Se ocultará automáticamente)
+            </span>
+            <button 
+              onClick={() => setRecentlyCreatedUser(null)}
+              className="text-xs text-muted-foreground hover:text-foreground font-semibold px-1"
+            >
+              ✕
+            </button>
+          </div>
 
-                       {/* Menú de Acciones */}
-{activeUserMenu === u.id && (
-  <div className="absolute right-3 top-10 w-44 bg-popover text-popover-foreground border rounded-md shadow-lg p-1 z-30 text-left">
-    <button
-      onClick={() => handleToggleUserStatus(u.id, u.estatus_membresia)}
-      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-muted rounded-sm transition-colors"
-    >
-      <UserX className="h-3.5 w-3.5" />
-      <span>{u.estatus_membresia === 'activo' ? 'Dar de baja' : 'Reactivar usuario'}</span>
-    </button>
-  </div>
-)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Tarjeta con los datos del nuevo usuario */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-background p-3.5 rounded-md border text-xs gap-3">
+            <div className="space-y-0.5">
+              <p className="font-semibold text-foreground">
+                {recentlyCreatedUser.nombre} {recentlyCreatedUser.apellido}
+              </p>
+              <p className="text-muted-foreground">{recentlyCreatedUser.email}</p>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 capitalize">
+                {recentlyCreatedUser.rol_nombre || 'Nuevo Usuario'}
+              </span>
+              <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${recentlyCreatedUser.estatus_membresia === 'activo' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-[#D80621]'}`}>
+                • {recentlyCreatedUser.estatus_membresia || 'activo'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Indicador de ayuda */}
+        <p className="text-[11px] text-center text-muted-foreground">
+          Usa la barra de búsqueda o los filtros superiores para consultar la lista completa de usuarios.
+        </p>
+      </div>
+    ) : !hasSearched ? (
+      /* 2. ESTADO INICIAL (Antes de realizar búsquedas) */
+      <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+        <div className="p-3 bg-muted rounded-full text-muted-foreground">
+          <Filter className="h-6 w-6" />
+        </div>
+        <p className="text-sm font-medium text-foreground">
+          Usa el botón de filtrado para buscar usuarios y realizar acciones en ellos.
+        </p>
+        <p className="text-xs text-muted-foreground max-w-sm">
+          Aplica parámetros por rol, país, idioma o elegibilidad de voto para realizar una consulta a la base de datos.
+        </p>
+      </div>
+    ) : isLoading ? (
+      /* 3. ESTADO DE CARGA */
+      <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+        <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+        <p className="text-xs text-muted-foreground">Consultando base de datos...</p>
+      </div>
+    ) : usersList.length === 0 ? (
+      /* 4. SIN RESULTADOS */
+      <div className="flex flex-col items-center justify-center py-12 text-center space-y-2">
+        <UserX className="h-6 w-6 text-muted-foreground" />
+        <p className="text-sm font-medium text-foreground">No se encontraron usuarios</p>
+        <p className="text-xs text-muted-foreground">
+          Intenta ajustar o limpiar los filtros seleccionados para obtener resultados.
+        </p>
+      </div>
+    ) : (
+      /* 5. TABLA DE RESULTADOS DE BÚSQUEDA */
+      <div className="overflow-x-auto border rounded-md">
+        <table className="w-full text-xs text-left min-w-[600px]">
+          <thead className="bg-muted/50 text-muted-foreground font-semibold">
+            <tr>
+              <th className="p-3">Usuario / Email</th>
+              <th className="p-3">Organización / País</th>
+              <th className="p-3">Rol / Membresía</th>
+              <th className="p-3">Voto Elegible</th>
+              <th className="p-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {usersList.map((u) => (
+              <tr key={u.id} className="hover:bg-muted/30 transition-colors">
+                <td className="p-3">
+                  <p className="font-semibold text-foreground">{u.nombre} {u.apellido}</p>
+                  <p className="text-[11px] text-muted-foreground">{u.email}</p>
+                </td>
+                <td className="p-3">
+                  <p className="font-medium">{u.organizacion_nombre || 'N/A'}</p>
+                  <p className="text-[11px] text-muted-foreground">{u.pais} • Idioma: {u.idioma_preferido?.toUpperCase()}</p>
+                </td>
+                <td className="p-3 space-y-1">
+                  <span className="inline-block bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-medium">
+                    {u.rol_nombre || 'Sin Rol'}
+                  </span>
+                  <div>
+                    <span className={`text-[10px] uppercase font-bold ${u.estatus_membresia === 'activo' ? 'text-emerald-600' : 'text-[#D80621]'}`}>
+                      • {u.estatus_membresia}
+                    </span>
+                  </div>
+                </td>
+                <td className="p-3">
+                  {u.es_elegible_para_votar ? (
+                    <span className="inline-flex items-center gap-1 text-emerald-600 text-[11px] font-medium">
+                      <UserCheck className="h-3.5 w-3.5" /> Sí
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground text-[11px]">No</span>
+                  )}
+                </td>
+                <td className="p-3 text-right relative">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setActiveUserMenu(activeUserMenu === u.id ? null : u.id)}
+                  >
+                    <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+
+                  {/* Menú de Acciones */}
+                  {activeUserMenu === u.id && (
+                    <div className="absolute right-3 top-10 w-44 bg-popover text-popover-foreground border rounded-md shadow-lg p-1 z-30 text-left">
+                      <button
+                        onClick={() => handleToggleUserStatus(u.id, u.estatus_membresia)}
+                        className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-muted rounded-sm transition-colors"
+                      >
+                        <UserX className="h-3.5 w-3.5" />
+                        <span>{u.estatus_membresia === 'activo' ? 'Dar de baja' : 'Reactivar usuario'}</span>
+                      </button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </CardContent>
+</Card>
 
       {/* MODAL CREAR USUARIO */}
       {showAddModal && (
@@ -616,48 +682,7 @@ export function TokenGeneratorManager() {
             )}
           </div>
 
-          {/* HISTORIAL DE TOKENS */}
-          <div className="pt-4 border-t">
-            <h4 className="text-xs font-semibold mb-3">Historial Reciente de Tokens Generados</h4>
-            <div className="overflow-x-auto border rounded-md">
-              <table className="w-full text-xs text-left">
-                <thead className="bg-muted/50 text-muted-foreground font-semibold">
-                  <tr>
-                    <th className="p-2.5">Token</th>
-                    <th className="p-2.5">Rol</th>
-                    <th className="p-2.5">Organización</th>
-                    <th className="p-2.5">¿Vota?</th>
-                    <th className="p-2.5">Fecha Generación</th>
-                    <th className="p-2.5">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {tokenList.map((t, idx) => (
-                    <tr key={idx} className="hover:bg-muted/20">
-                      <td className="p-2.5 font-mono font-semibold">{t.token}</td>
-                      <td className="p-2.5">
-                        <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-medium capitalize">
-                          {t.rol}
-                        </span>
-                      </td>
-                      <td className="p-2.5 font-medium text-foreground">{t.organizacion}</td>
-                      <td className="p-2.5">
-                        <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase ${t.vota === 'si' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
-                          {t.vota}
-                        </span>
-                      </td>
-                      <td className="p-2.5 text-muted-foreground">{t.fecha}</td>
-                      <td className="p-2.5">
-                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${t.estado === 'Disponible' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'}`}>
-                          {t.estado}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          
         </CardContent>
       </Card>
 
