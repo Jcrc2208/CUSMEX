@@ -382,18 +382,18 @@ function UsersManager() {
                           <MoreVertical className="h-4 w-4 text-muted-foreground" />
                         </Button>
 
-                        {/* Menú de Acciones */}
-                        {activeUserMenu === u.id && (
-                          <div className="absolute right-3 top-10 w-44 bg-popover text-popover-foreground border rounded-md shadow-lg p-1 z-30 text-left">
-                            <button
-                              onClick={() => handleToggleUserStatus(u.id)}
-                              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-muted rounded-sm transition-colors"
-                            >
-                              <UserX className="h-3.5 w-3.5" />
-                              <span>{u.estatus_membresia === 'activo' ? 'Dar de baja' : 'Reactivar usuario'}</span>
-                            </button>
-                          </div>
-                        )}
+                       {/* Menú de Acciones */}
+{activeUserMenu === u.id && (
+  <div className="absolute right-3 top-10 w-44 bg-popover text-popover-foreground border rounded-md shadow-lg p-1 z-30 text-left">
+    <button
+      onClick={() => handleToggleUserStatus(u.id, u.estatus_membresia)}
+      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-muted rounded-sm transition-colors"
+    >
+      <UserX className="h-3.5 w-3.5" />
+      <span>{u.estatus_membresia === 'activo' ? 'Dar de baja' : 'Reactivar usuario'}</span>
+    </button>
+  </div>
+)}
                       </td>
                     </tr>
                   ))}
