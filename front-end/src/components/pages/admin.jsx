@@ -38,69 +38,68 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PlatformLayout from '@/components/layout/platform-layout';
 
 // --- 1. SUBCOMPONENTE: GESTIÓN DE USUARIOS Y ROLES ---
+// --- 1. SUBCOMPONENTE: GESTIÓN DE USUARIOS Y ROLES ---
 function UsersManager() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [activeUserMenu, setActiveUserMenu] = useState(null);
 
-  // Estados de Filtros Avanzados (Punto 2)
+  // Estados de Filtros Avanzados
   const [roleFilter, setRoleFilter] = useState('todos');
   const [countryFilter, setCountryFilter] = useState('todos');
   const [languageFilter, setLanguageFilter] = useState('todos');
   const [voteFilter, setVoteFilter] = useState('todos');
 
-const [newUser, setNewUser] = useState({
-  nombre: '',
-  apellido: '',
-  email: '',
-  password_hash: '',
-  pais: '',
-  rol_id: 'B0788339-4704-4211-9257-285628452174',       // <--- UUID del admin por defecto
-  organizacion_id: '13658a1b-8c61-11f1-ad59-021b1b24cd02', // <--- UUID de la org por defecto
-  idioma_preferido: 'es',
-  estatus_membresia: 'activo',
-  es_elegible_para_votar: false
-});
+  // Estado para controlar la carga y si ya se hizo una primera búsqueda
+  const [usersList, setUsersList] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const [usersList, setUsersList] = useState([
-    {
-      id: 'u1',
-      nombre: 'Elena',
-      apellido: 'Martínez',
-      email: 'elena.m@empresa.com',
-      pais: 'México',
-      idioma_preferido: 'es',
-      estatus_membresia: 'activo',
-      es_elegible_para_votar: true,
-      rol_nombre: 'Delegado',
-      organizacion_nombre: 'Secretaría de Economía'
-    },
-    {
-      id: 'u2',
-      nombre: 'Carlos',
-      apellido: 'Ruiz',
-      email: 'carlos.ruiz@natp.org',
-      pais: 'EE.UU.',
-      idioma_preferido: 'en',
-      estatus_membresia: 'activo',
-      es_elegible_para_votar: false,
-      rol_nombre: 'Administrador',
-      organizacion_nombre: 'CUSMEX'
-    },
-    {
-      id: 'u3',
-      nombre: 'Sofía',
-      apellido: 'Gómez',
-      email: 'sgomez@tech.io',
-      pais: 'Canadá',
-      idioma_preferido: 'fr',
-      estatus_membresia: 'inactivo',
-      es_elegible_para_votar: false,
-      rol_nombre: 'Observador',
-      organizacion_nombre: 'Tech Trade Global'
+  const [newUser, setNewUser] = useState({
+    nombre: '',
+    apellido: '',
+    email: '',
+    password_hash: '',
+    pais: '',
+    rol_id: 'B0788339-4704-4211-9257-285628452174',       // UUID del admin por defecto
+    organizacion_id: '13658a1b-8c61-11f1-ad59-021b1b24cd02', // UUID de la org por defecto
+    idioma_preferido: 'es',
+    estatus_membresia: 'activo',
+    es_elegible_para_votar: false
+  });
+
+  // Petición / Consulta a la Base de Datos según filtros aplicados
+  const fetchUsuarios = async () => {
+    setIsLoading(true);
+    setHasSearched(true);
+    setShowFilterMenu(false);
+
+    try {
+      // Construir Query Params dinámicos
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('q', searchQuery);
+      if (roleFilter !== 'todos') params.append('rol', roleFilter);
+      if (countryFilter !== 'todos') params.append('pais', countryFilter);
+      if (languageFilter !== 'todos') params.append('idioma', languageFilter);
+      if (voteFilter !== 'todos') params.append('vota', voteFilter);
+
+      const response = await fetch(`http://localhost:8000/api/v1/admin/usuarios?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error('Error al obtener los usuarios');
+      }
+
+      const data = await response.json();
+      setUsersList(data); // Asigna los datos obtenidos desde la BD
+    } catch (error) {
+      console.error('Error al consultar usuarios:', error);
+      // Opcional: limpiar la lista o mostrar alerta
+      setUsersList([]);
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
 
   // Función para dar de baja o reactivar usuario
   const handleToggleUserStatus = (userId) => {
@@ -158,9 +157,7 @@ const [newUser, setNewUser] = useState({
         estatus_membresia: 'activo',
       });
       
-      if (typeof fetchUsuarios === "function") {
-        fetchUsuarios();
-      }
+      fetchUsuarios();
 
     } catch (error) {
       console.error("Error:", error);
@@ -182,27 +179,6 @@ const [newUser, setNewUser] = useState({
     voteFilter !== 'todos'
   ].filter(Boolean).length;
 
-  const filteredUsers = usersList.filter(user => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch = (
-      user.nombre.toLowerCase().includes(query) ||
-      user.apellido.toLowerCase().includes(query) ||
-      user.email.toLowerCase().includes(query) ||
-      user.pais.toLowerCase().includes(query) ||
-      user.organizacion_nombre.toLowerCase().includes(query)
-    );
-
-    const matchesRole = roleFilter === 'todos' || user.rol_nombre.toLowerCase() === roleFilter.toLowerCase();
-    const matchesCountry = countryFilter === 'todos' || user.pais.toLowerCase() === countryFilter.toLowerCase();
-    const matchesLanguage = languageFilter === 'todos' || user.idioma_preferido === languageFilter;
-    const matchesVote =
-      voteFilter === 'todos' ||
-      (voteFilter === 'elegibles' && user.es_elegible_para_votar) ||
-      (voteFilter === 'no_elegibles' && !user.es_elegible_para_votar);
-
-    return matchesSearch && matchesRole && matchesCountry && matchesLanguage && matchesVote;
-  });
-
   return (
     <div className="space-y-4 animate-in fade-in-0 duration-500">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -216,6 +192,7 @@ const [newUser, setNewUser] = useState({
               placeholder="Buscar por nombre, correo, país u organización..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && fetchUsuarios()}
             />
           </div>
 
@@ -308,13 +285,17 @@ const [newUser, setNewUser] = useState({
                 </div>
 
                 <div className="pt-1 flex justify-end">
-                  <Button size="sm" className="w-full h-7 text-xs" onClick={() => setShowFilterMenu(false)}>
-                    Aplicar Filtros
+                  <Button size="sm" className="w-full h-7 text-xs" onClick={fetchUsuarios}>
+                    Aplicar Filtros y Buscar
                   </Button>
                 </div>
               </div>
             )}
           </div>
+
+          <Button size="sm" onClick={fetchUsuarios} className="gap-1.5 text-xs shrink-0">
+            <Search className="h-3.5 w-3.5" /> Buscar
+          </Button>
         </div>
 
         <Button size="sm" onClick={() => setShowAddModal(true)} className="gap-1.5 text-xs w-full sm:w-auto shrink-0">
@@ -322,40 +303,60 @@ const [newUser, setNewUser] = useState({
         </Button>
       </div>
 
+      {/* CONTENEDOR PRINCIPAL: Mensaje o Resultados de la Tabla */}
       <Card>
-        <CardHeader className="p-4 sm:p-6 pb-3">
-          <CardTitle className="text-base">Control de Usuarios Registrados</CardTitle>
-          <CardDescription className="text-xs">
-            Gestión de elegibilidad, membresías y roles asignados en la base de datos.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0 sm:p-6 sm:pt-0">
-          <div className="overflow-x-auto border-t sm:border sm:rounded-md">
-            <table className="w-full text-xs text-left min-w-[600px]">
-              <thead className="bg-muted/50 text-muted-foreground font-semibold">
-                <tr>
-                  <th className="p-3">Usuario / Email</th>
-                  <th className="p-3">Organización / País</th>
-                  <th className="p-3">Rol / Membresía</th>
-                  <th className="p-3">Voto Elegible</th>
-                  <th className="p-3 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map((u) => (
+        <CardContent className="p-6">
+          {!hasSearched ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+              <div className="p-3 bg-muted rounded-full text-muted-foreground">
+                <Filter className="h-6 w-6" />
+              </div>
+              <p className="text-sm font-medium text-foreground">
+                Usa el botón de filtrado para buscar usuarios y realizar acciones en ellos.
+              </p>
+              <p className="text-xs text-muted-foreground max-w-sm">
+                Aplica parámetros por rol, país, idioma o elegibilidad de voto para realizar una consulta a la base de datos.
+              </p>
+            </div>
+          ) : isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+              <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+              <p className="text-xs text-muted-foreground">Consultando base de datos...</p>
+            </div>
+          ) : usersList.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-2">
+              <UserX className="h-6 w-6 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">No se encontraron usuarios</p>
+              <p className="text-xs text-muted-foreground">
+                Intenta ajustar o limpiar los filtros seleccionados para obtener resultados.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto border rounded-md">
+              <table className="w-full text-xs text-left min-w-[600px]">
+                <thead className="bg-muted/50 text-muted-foreground font-semibold">
+                  <tr>
+                    <th className="p-3">Usuario / Email</th>
+                    <th className="p-3">Organización / País</th>
+                    <th className="p-3">Rol / Membresía</th>
+                    <th className="p-3">Voto Elegible</th>
+                    <th className="p-3 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {usersList.map((u) => (
                     <tr key={u.id} className="hover:bg-muted/30 transition-colors">
                       <td className="p-3">
                         <p className="font-semibold text-foreground">{u.nombre} {u.apellido}</p>
                         <p className="text-[11px] text-muted-foreground">{u.email}</p>
                       </td>
                       <td className="p-3">
-                        <p className="font-medium">{u.organizacion_nombre}</p>
-                        <p className="text-[11px] text-muted-foreground">{u.pais} • Idioma: {u.idioma_preferido.toUpperCase()}</p>
+                        <p className="font-medium">{u.organizacion_nombre || 'N/A'}</p>
+                        <p className="text-[11px] text-muted-foreground">{u.pais} • Idioma: {u.idioma_preferido?.toUpperCase()}</p>
                       </td>
                       <td className="p-3 space-y-1">
                         <span className="inline-block bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-medium">
-                          {u.rol_nombre}
+                          {u.rol_nombre || 'Sin Rol'}
                         </span>
                         <div>
                           <span className={`text-[10px] uppercase font-bold ${u.estatus_membresia === 'activo' ? 'text-emerald-600' : 'text-[#D80621]'}`}>
@@ -395,17 +396,11 @@ const [newUser, setNewUser] = useState({
                         )}
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="text-center p-6 text-muted-foreground">
-                      No se encontraron usuarios con los filtros seleccionados.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
