@@ -1,13 +1,9 @@
 import {
-  Bell,
   CalendarDays,
   Handshake,
-  Landmark,
   Languages,
   LayoutDashboard,
-  Settings,
   ShieldCheck,
-  Sparkles,
   Users,
   UserCog
 } from 'lucide-react';
@@ -24,12 +20,8 @@ export const FEATURE_ICONS = {
 const PLATFORM_MODULES = [
   { id: 'confi_user', icon: UserCog },
   { id: 'inicio', icon: LayoutDashboard },
-  //{ id: 'participantes', icon: Users },
   { id: 'networking', icon: Handshake },
   { id: 'agenda', icon: CalendarDays },
-  { id: 'comites', icon: Landmark },
-  { id: 'sponsors', icon: ShieldCheck, sponsorOrAdminOnly: true },
-  { id: 'administracion', icon: Settings, adminOnly: true },
   { id: 'auth', icon: ShieldCheck }
 ];
 
@@ -104,25 +96,12 @@ export const COPY = {
         'Reuniones, salas y ponentes',
         'Calendario integrado',
       ],
-      comites: [
-        'Comités y miembros',
-        'Documentos y votaciones',
-        'Responsabilidades',
-      ],     
-      administracion: [        
-        'Usuarios, roles y permisos',
-        'Configuración y patrocinadores',
-        'Ediciones del evento y auditoría',
-      ],
     },
     moduleLabels: {
       confi_user: 'Configuración Inicial',
       inicio: 'Inicio',
       networking: 'Networking',
       agenda: 'Agenda',
-      comites: 'Comités',
-      sponsors: 'Patrocinadores',
-      administracion: 'Administración',
       auth: 'Autenticación y Control de Acceso',
     },
     modules: buildModules({
@@ -130,9 +109,6 @@ export const COPY = {
       inicio: 'Inicio',
       networking: 'Networking',
       agenda: 'Agenda',
-      comites: 'Comités',
-      sponsors: 'Patrocinadores',
-      administracion: 'Administración',
       auth: 'Autenticación y Control de Acceso',
     }),
     inicio: {
@@ -321,7 +297,7 @@ export const COPY = {
         description:
           'Entra para coordinar networking, reuniones y tu presencia en la Asamblea de Oakland.',
         placeholder: 'empresa@dominio.com',
-      },
+      },     
       patrocinador: {
         title: 'Acceso Patrocinador',
         description: 'Para aliados estratégicos, sponsors y partners oficiales del evento.',
@@ -331,39 +307,6 @@ export const COPY = {
         title: 'Administrador',
         description: 'Gestiona cuentas, roles institucionales, auditoría y la configuración general de Nexus.',
         placeholder: 'admin@natp.org',
-      }
-    },
-    admin: {
-      title: 'Panel de Administración',
-      description: 'Gestión de usuarios, roles, patrocinadores y configuración general.',
-      tabs: {
-        users: 'Usuarios y Roles',
-        config: 'Configuración',
-        audit: 'Auditoría'
-      },
-      usersManager: {
-        searchPlaceholder: 'Buscar por nombre, correo o rol...',
-        addUser: 'Añadir Usuario',
-        cardTitle: 'Directorio de Usuarios',
-        cardDesc: 'Administra los accesos y permisos de todos los participantes del NATP.',
-        tableUser: 'Usuario',
-        tableRole: 'Rol',
-        tableActions: 'Acciones',
-        roles: {
-          empresa: 'Empresa',
-          admin: 'Admin'
-        }
-      },
-      configManager: {
-        cardTitle: 'Configuración Global del Evento',
-        cardDesc: 'Ajustes principales, logotipos y habilitación de módulos.',
-        editionName: 'Nombre de la Edición',
-        sponsorsPlaceholder: 'Gestor de Patrocinadores (En construcción)'
-      },
-      auditLogs: {
-        cardTitle: 'Registro de Auditoría',
-        cardDesc: 'Historial de actividad de administradores y cambios en el sistema.',
-        emptyState: 'No hay registros recientes de seguridad.'
       }
     },
     features: [
@@ -422,11 +365,6 @@ export const COPY = {
     comingSoonScopeLabel: 'Will include:',
     backToInicio: 'Go to Home',
     moduleScopes: {
-      participantes: [
-        'User profile',
-        'Companies, organizations, and governments',
-        'Committees',
-      ],
       networking: [
         'Business Matchmaking',
         'Company catalog',
@@ -438,21 +376,12 @@ export const COPY = {
         'Meetings, rooms, and speakers',
         'Integrated calendar',
       ],
-      comites: ['Committees and members', 'Documents and voting', 'Responsibilities'],     
-      administracion: [
-        'Users, roles, and permissions',
-        'Configuration and sponsors',
-        'Event editions and auditing',
-      ],
     },
     moduleLabels: {
       confi_user: 'Initial Setup',
       inicio: 'Home',
       networking: 'Networking',
       agenda: 'Agenda',
-      comites: 'Committees',
-      sponsors: 'Sponsors',
-      administracion: 'Administration',
       auth: 'Authentication and Access Control',
     },
     modules: buildModules({
@@ -460,9 +389,6 @@ export const COPY = {
       inicio: 'Home',
       networking: 'Networking',
       agenda: 'Agenda',
-      comites: 'Committees',
-      sponsors: 'Sponsors',
-      administracion: 'Administration',
       auth: 'Authentication and Access Control',
     }),
     inicio: {
@@ -662,39 +588,6 @@ export const COPY = {
         placeholder: 'admin@natp.org',
       }            
     },
-    admin: {
-      title: 'Administration Panel',
-      description: 'Manage users, roles, sponsors, and general configuration.',
-      tabs: {
-        users: 'Users & Roles',
-        config: 'Configuration',
-        audit: 'Audit Logs'
-      },
-      usersManager: {
-        searchPlaceholder: 'Search by name, email or role...',
-        addUser: 'Add User',
-        cardTitle: 'User Directory',
-        cardDesc: 'Manage access and permissions for all NATP participants.',
-        tableUser: 'User',
-        tableRole: 'Role',
-        tableActions: 'Actions',
-        roles: {
-          empresa: 'Company',
-          admin: 'Admin'
-        }
-      },
-      configManager: {
-        cardTitle: 'Global Event Configuration',
-        cardDesc: 'Main settings, logos, and module toggles.',
-        editionName: 'Edition Name',
-        sponsorsPlaceholder: 'Sponsor Manager (Under construction)'
-      },
-      auditLogs: {
-        cardTitle: 'Audit Log',
-        cardDesc: 'Activity history of administrators and system changes.',
-        emptyState: 'No recent security logs found.'
-      }
-    },
     features: [
       {
         id: 'usuarios-roles',
@@ -768,21 +661,12 @@ export const COPY = {
         'Réunions, salles et intervenants',
         'Calendrier intégré',
       ],
-      comites: ['Comités et membres', 'Documents et votes', 'Responsabilités'],     
-      administracion: [
-        'Utilisateurs, rôles et permissions',
-        'Configuration et sponsors',
-        'Éditions de l’événement et audit',
-      ],
     },
     moduleLabels: {
       confi_user: 'Configuration Initial',
       inicio: 'Accueil',
       networking: 'Networking',
       agenda: 'Agenda',
-      comites: 'Comités',
-      sponsors: 'Sponsors',
-      administracion: 'Administration',
       auth: 'Authentification et contrôle d’accès',
     },
     modules: buildModules({
@@ -790,9 +674,6 @@ export const COPY = {
       inicio: 'Accueil',
       networking: 'Networking',
       agenda: 'Agenda',
-      comites: 'Comités',
-      sponsors: 'Sponsors',
-      administracion: 'Administration',
       auth: 'Authentification et contrôle d’accès',
     }),
     inicio: {
