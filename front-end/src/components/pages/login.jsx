@@ -82,7 +82,7 @@ export default function Login({
         localStorage.setItem('userName', data.user.name)
 
         console.log('✅ Login exitoso:', data);
-        navigateToModule('inicio');
+        navigateToModule('confi_user');
       } else {
         console.error('❌ Error de login:', data.detail);
         alert(data.detail || 'Credenciales incorrectas');

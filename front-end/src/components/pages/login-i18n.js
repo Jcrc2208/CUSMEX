@@ -5,15 +5,16 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Users,
-  UserCog
+  UserCog,
+  Sparkles
 } from 'lucide-react';
 
 // Map of icons for getFeatures()
 export const FEATURE_ICONS = {
-  'usuarios-roles': Users,
-  'portal-participante': UserCog,
   'agenda': CalendarDays,
   'matchmaking': Handshake,
+  'ia-b2b': Sparkles,
+  'usuarios-roles': Users,
   'traduccion': Languages,
 };
 
@@ -59,17 +60,17 @@ export const COPY = {
   es: {
     modulesButton: 'Módulos',
     modulesLabel: 'Navegación de la plataforma',
-    modulesMobileTitle: 'Módulos NATP Nexus',
+    modulesMobileTitle: 'Módulos NexusMatch',
     authBadge: 'Autenticación y Control de Acceso',
     heroKicker: 'Autenticación y Control de Acceso',
-    heroTitle: 'NATP Nexus AI Platform',
+    heroTitle: 'NexusMatch',
     heroDescription:
-      'Bienvenido al espacio donde empresas, gobiernos, organizaciones y participantes se conectan para impulsar nuevas oportunidades de colaboración, networking y crecimiento durante el North American Trade Parliament.',
+      'Bienvenido al espacio donde empresas, gobiernos y organizaciones conectan para agendar reuniones de negocios estratégicas, encontrar aliados comerciales y potenciar sus oportunidades durante el North American Trade Parliament.',
     featuresTitle: 'Al iniciar sesión tendrás acceso a:',
     accessType: 'Tipo de acceso',
     email: 'Correo',
     password: 'Contraseña',
-    enter: 'Entrar a NATP Nexus',
+    enter: 'Entrar a NexusMatch',
     forgotPassword: '¿Olvidaste tu contraseña?',
     requestAccess: 'Solicitar acceso',
     logout: 'Cerrar sesión',
@@ -297,59 +298,53 @@ export const COPY = {
         description:
           'Entra para coordinar networking, reuniones y tu presencia en la Asamblea de Oakland.',
         placeholder: 'empresa@dominio.com',
-      },     
+      },      
       patrocinador: {
         title: 'Acceso Patrocinador',
         description: 'Para aliados estratégicos, sponsors y partners oficiales del evento.',
         placeholder: 'patrocinador@dominio.com',
-      },     
+      },      
       admin: {
         title: 'Administrador',
-        description: 'Gestiona cuentas, roles institucionales, auditoría y la configuración general de Nexus.',
+        description: 'Gestiona cuentas, roles institucionales, auditoría y la configuración general de NexusMatch.',
         placeholder: 'admin@natp.org',
       }
     },
     features: [
       {
-        id: 'usuarios-roles',
-        title: 'Usuarios y Roles',
-        description:
-          'Gestiona usuarios del NATP por categoría, organización, país, idioma, acceso, permisos, comités y responsabilidades.',
-      },
-      {
         id: 'agenda',
-        title: 'Sistema de Agenda',
+        title: 'Agenda y Solicitudes B2B',
         description:
-          'Agenda general, por comité, usuario, patrocinadores y administración, con salas, horarios, ponentes y notificaciones en tiempo real.',
-      },    
+          'Coordina tu agenda de negocios, solicita reuniones bilaterales con otros asistentes y gestiona tus horarios y salas confirmadas en tiempo real.',
+      },     
       {
         id: 'matchmaking',
         title: 'Business Matchmaking',
         description:
-          'Conexiones estratégicas entre participantes, gobiernos, cámaras y empresas, con razón de match y solicitud de reunión.',
+          'Descubre conexiones estratégicas entre empresas, gobiernos y cámaras con recomendaciones según el perfil comercial y sector de interés.',
       },
       {
-        id: 'traduccion',
-        title: 'Traducción en Tiempo Real',
+        id: 'ia-b2b',
+        title: 'Asistente IA para Reuniones B2B',
         description:
-          'Comunicación multilingüe (inglés, español y francés) con speech-to-text, subtítulos en vivo y glosario institucional.',
+          'Obtén sugerencias inteligentes para preparar tus citas comerciales, identificar oportunidades de match clave y dar seguimiento a tus acuerdos.',
       },
     ],
   },
   en: {
     modulesButton: 'Modules',
     modulesLabel: 'Platform navigation',
-    modulesMobileTitle: 'NATP Nexus Modules',
+    modulesMobileTitle: 'NexusMatch Modules',
     authBadge: 'Authentication and Access Control',
     heroKicker: 'Authentication and Access Control',
-    heroTitle: 'NATP Nexus AI Platform',
+    heroTitle: 'NexusMatch',
     heroDescription:
-      'Welcome to the space where companies, governments, organizations, and participants connect to drive new collaboration, networking, and growth opportunities during the North American Trade Parliament.',
+      'Welcome to the space where companies, governments, and organizations connect to schedule strategic business meetings, find commercial partners, and boost opportunities during the North American Trade Parliament.',
     featuresTitle: 'Once signed in, you will have access to:',
     accessType: 'Access type',
     email: 'Email',
     password: 'Password',
-    enter: 'Enter NATP Nexus',
+    enter: 'Enter NexusMatch',
     forgotPassword: 'Forgot your password?',
     requestAccess: 'Request access',
     logout: 'Log out',
@@ -576,7 +571,7 @@ export const COPY = {
         description:
           'Sign in to coordinate networking, meetings, and your presence at the Oakland Assembly.',
         placeholder: 'company@domain.com',
-      },     
+      },      
       patrocinador: {
         title: 'Sponsor Access',
         description: 'For strategic allies, sponsors, and official event partners.',
@@ -584,57 +579,45 @@ export const COPY = {
       },
       admin: {
         title: 'Administrator',
-        description: 'Manage accounts, institutional roles, auditing, and general Nexus configuration.',
+        description: 'Manage accounts, institutional roles, auditing, and general NexusMatch configuration.',
         placeholder: 'admin@natp.org',
       }            
     },
     features: [
       {
-        id: 'usuarios-roles',
-        title: 'Users and Roles',
-        description:
-          'Manage NATP users by category, organization, country, language, access, permissions, committees, and responsibilities.',
-      },
-      {
-        id: 'portal-participante',
-        title: 'Participant Portal',
-        description:
-          'A personalized space with agenda, meetings, documents, committees, notifications, AI, voting, transcripts, and recommendations.',
-      },
-      {
         id: 'agenda',
-        title: 'Agenda System',
+        title: 'B2B Agenda and Requests',
         description:
-          'General, committee, user, sponsor, and admin agendas with rooms, schedules, speakers, and real-time notifications.',
-      },     
+          'Coordinate your business schedule, request bilateral meetings with other attendees, and manage your confirmed times and rooms in real time.',
+      },      
       {
         id: 'matchmaking',
         title: 'Business Matchmaking',
         description:
-          'Strategic connections among participants, governments, chambers, and companies, with match reasons and meeting requests.',
+          'Discover strategic connections between companies, governments, and chambers based on business profiles and sectors of interest.',
       },
       {
-        id: 'traduccion',
-        title: 'Real-Time Translation',
+        id: 'ia-b2b',
+        title: 'AI Assistant for B2B Meetings',
         description:
-          'Multilingual communication (English, Spanish, and French) with speech-to-text, live captions, and institutional glossary.',
+          'Get smart suggestions to prepare for commercial meetings, identify key match opportunities, and follow up on agreements.',
       },
     ],
   },
   fr: {
     modulesButton: 'Modules',
     modulesLabel: 'Navigation de la plateforme',
-    modulesMobileTitle: 'Modules NATP Nexus',
+    modulesMobileTitle: 'Modules NexusMatch',
     authBadge: 'Authentification et contrôle d’accès',
     heroKicker: 'Authentification et contrôle d’accès',
-    heroTitle: 'NATP Nexus AI Platform',
+    heroTitle: 'NexusMatch',
     heroDescription:
-      'Bienvenue dans l’espace où entreprises, gouvernements, organisations et participants se connectent pour favoriser de nouvelles opportunités de collaboration, de networking et de croissance pendant le North American Trade Parliament.',
+      'Bienvenue dans l’espace où entreprises, gouvernements et organisations se connectent pour planifier des réunions d’affaires stratégiques, trouver des partenaires commerciaux et développer des opportunités lors du North American Trade Parliament.',
     featuresTitle: 'Une fois connecté, vous aurez accès à :',
     accessType: 'Type d’accès',
     email: 'E-mail',
     password: 'Mot de passe',
-    enter: 'Entrer dans NATP Nexus',
+    enter: 'Entrer dans NexusMatch',
     forgotPassword: 'Mot de passe oublié ?',
     requestAccess: 'Demander un accès',
     logout: 'Déconnexion',
@@ -744,6 +727,26 @@ export const COPY = {
         ],
       },
     },
+    features: [
+      {
+        id: 'agenda',
+        title: 'Agenda B2B et demandes',
+        description:
+          'Coordonnez votre agenda d’affaires, demandez des réunions bilatérales et gérez vos créneaux et salles confirmés en temps réel.',
+      },
+      {
+        id: 'matchmaking',
+        title: 'Business Matchmaking',
+        description:
+          'Découvrez des connexions stratégiques entre entreprises, gouvernements et chambres selon vos profils et secteurs d’intérêt.',
+      },
+      {
+        id: 'ia-b2b',
+        title: 'Assistant IA pour réunions B2B',
+        description:
+          'Obtenez des suggestions intelligentes pour préparer vos rendez-vous commerciaux, identifier des opportunités clés et assurer le suivi.',
+      },
+    ],
   },
 };
 
