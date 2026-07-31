@@ -16,7 +16,7 @@ def simular_registro_db():
 def generar_qr_desde_datos(datos: dict):
     # Convertimos el diccionario a un formato de texto estructurado para el QR
     # (Puedes concatenar los campos o usar formato JSON/texto plano)
-    contenido_qr = f"ID: {datos['id']}\nNombre: {datos['nombre']}\nGrado: {datos['grado']}\nEmail: {datos['email']}"
+    contenido_qr = f"ID: {datos['id']}\nNombre: {datos['nombre']}\npuesto: {datos['puesto']}\nEmail: {datos['email']}"
 
     # Configuramos el objeto QR
     qr = qrcode.QRCode(
