@@ -107,80 +107,69 @@ function UsersManager() {
   };
 
   // Función para dar de baja o reactivar usuario
-  const handleToggleUserStatus = (userId) => {
-    setUsersList(prev => prev.map(u => {
-      if (u.id === userId) {
-        const newStatus = u.estatus_membresia === 'activo' ? 'inactivo' : 'activo';
-        return { ...u, estatus_membresia: newStatus };
-      }
-      return u;
-    }));
-    setActiveUserMenu(null);
-  };
+ // Agrega esta referencia arriba en UsersManager o usa useRef si prefieres
+const handleCreateUser = async (e) => {
+  e.preventDefault();
+  if (!newUser.nombre || !newUser.email) return;
 
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-    if (!newUser.nombre || !newUser.email) return;
+  try {
+    const response = await fetch("http://localhost:8000/api/v1/admin/usuarios", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nombre: newUser.nombre,
+        apellido: newUser.apellido || "N/A",
+        email: newUser.email,
+        password: newUser.password_hash || "temporal123",
+        pais: newUser.pais || "México",
+        rol_id: newUser.rol_id,
+        organizacion_id: newUser.organizacion_id,
+        idioma_preferido: newUser.idioma_preferido || "es",
+        estatus_membresia: newUser.estatus_membresia || "activo",
+        es_elegible_para_votar: newUser.es_elegible_para_votar || false
+      }),
+    });
 
-    try {
-      const response = await fetch("http://localhost:8000/api/v1/admin/usuarios", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nombre: newUser.nombre,
-          apellido: newUser.apellido || "N/A",
-          email: newUser.email,
-          password: newUser.password_hash || "temporal123",
-          pais: newUser.pais || "México",
-          rol_id: newUser.rol_id,
-          organizacion_id: newUser.organizacion_id,
-          idioma_preferido: newUser.idioma_preferido || "es",
-          estatus_membresia: newUser.estatus_membresia || "activo",
-          es_elegible_para_votar: newUser.es_elegible_para_votar || false
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-  throw new Error(data.detail || "Error al registrar el usuario");
-}
-
-setShowAddModal(false);
-setRecentlyCreatedUser(data); // <--- Asignar los datos del usuario creado
-setHasSearched(false);        // <--- Asegura que la tarjeta banner sea visible
-
-// Opcional: Ocultar automáticamente en 10 segundos
-setTimeout(() => {
-  setRecentlyCreatedUser(null);
-}, 10000);
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Error al registrar el usuario en el servidor");
-      }
-
-      setShowAddModal(false);
-      setNewUser({
-        rol_id: '',
-        organizacion_id: '',
-        nombre: '',
-        apellido: '',
-        email: '',
-        password_hash: '',
-        pais: '',
-        idioma_preferido: 'es',
-        es_elegible_para_votar: false,
-        estatus_membresia: 'activo',
-      });
-      
-      fetchUsuarios();
-
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Hubo un error al guardar: " + error.message);
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.detail || "Error al registrar el usuario");
     }
-  };
+
+    // 1. Cerrar modal y limpiar formulario
+    setShowAddModal(false);
+    setNewUser({
+      rol_id: 'B0788339-4704-4211-9257-285628452174',
+      organizacion_id: '13658a1b-8c61-11f1-ad59-021b1b24cd02',
+      nombre: '',
+      apellido: '',
+      email: '',
+      password_hash: '',
+      pais: '',
+      idioma_preferido: 'es',
+      es_elegible_para_votar: false,
+      estatus_membresia: 'activo',
+    });
+
+    // 2. Asignar usuario creado y asegurar que no haya estado de búsqueda activo
+    setRecentlyCreatedUser(data);
+    setHasSearched(false); // Oculta la vista de tabla/búsqueda para mostrar el banner
+
+    // 3. Ocultar automáticamente tras 10 segundos (10000 ms)
+    setTimeout(() => {
+      setRecentlyCreatedUser(null);
+    }, 10000);
+
+    // NOTA: Se eliminó la llamada automática a fetchUsuarios() para evitar que setHasSearched(true) 
+    // oculte de golpe el componente recién creado.
+
+  } catch (error) {
+    console.error("Error:", error);
+    alert("Hubo un error al guardar: " + error.message);
+  }
+};
 
   const resetFilters = () => {
     setRoleFilter('todos');
@@ -324,64 +313,148 @@ setTimeout(() => {
 <Card>
   <CardContent className="p-6">
     {/* 1. USUARIO RECIÉN CREADO (Se muestra sólo si no hay búsqueda activa y existe un nuevo usuario) */}
-    {recentlyCreatedUser && !hasSearched ? (
-      <div className="space-y-4">
-        {/* Banner de confirmación */}
-        <div className="p-4 border border-emerald-500/30 bg-emerald-500/10 rounded-lg animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              Usuario creado recientemente (Se ocultará automáticamente)
-            </span>
-            <button 
-              onClick={() => setRecentlyCreatedUser(null)}
-              className="text-xs text-muted-foreground hover:text-foreground font-semibold px-1"
-            >
-              ✕
-            </button>
-          </div>
+{recentlyCreatedUser && !hasSearched ? (
+  <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+    {/* Encabezado del contenedor con botón de cerrar */}
+    <div className="flex items-center justify-between px-1">
+      <div className="flex items-center gap-2">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span className="text-xs font-semibold text-emerald-500 dark:text-emerald-400">
+          Usuario registrado exitosamente
+        </span>
+      </div>
+      <button 
+        onClick={() => setRecentlyCreatedUser(null)}
+        className="text-xs text-muted-foreground hover:text-foreground font-semibold px-1 transition-colors"
+        title="Cerrar vista"
+      >
+        ✕
+      </button>
+    </div>
 
-          {/* Tarjeta con los datos del nuevo usuario */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-background p-3.5 rounded-md border text-xs gap-3">
-            <div className="space-y-0.5">
-              <p className="font-semibold text-foreground">
-                {recentlyCreatedUser.nombre} {recentlyCreatedUser.apellido}
-              </p>
-              <p className="text-muted-foreground">{recentlyCreatedUser.email}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 capitalize">
-                {recentlyCreatedUser.rol_nombre || 'Nuevo Usuario'}
+    {/* Tabla mapeada con los nombres exactos del API / Estado */}
+    <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-sm">
+      <table className="w-full text-left text-xs whitespace-nowrap">
+        <thead className="bg-muted/40 border-b border-border text-muted-foreground font-medium">
+          <tr>
+            <th className="py-2.5 px-3">ID</th>
+            <th className="py-2.5 px-3">Nombre</th>
+            <th className="py-2.5 px-3">Apellido</th>
+            <th className="py-2.5 px-3">Correo</th>
+            <th className="py-2.5 px-3">Contraseña</th>
+            <th className="py-2.5 px-3">País</th>
+            <th className="py-2.5 px-3">Rol</th>
+            <th className="py-2.5 px-3">Organización</th>
+            <th className="py-2.5 px-3">Idioma Preferido</th>
+            <th className="py-2.5 px-3">Membresía</th>
+            <th className="py-2.5 px-3 text-center">Elegible para Votar</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          <tr className="hover:bg-muted/20 transition-colors">
+            {/* ID */}
+            <td className="py-3 px-3 font-mono text-[10px] text-muted-foreground max-w-[100px] truncate" title={recentlyCreatedUser.id}>
+              {recentlyCreatedUser.id || '—'}
+            </td>
+
+            {/* Nombre */}
+            <td className="py-3 px-3 font-medium text-foreground">
+              {recentlyCreatedUser.nombre || recentlyCreatedUser.name || '—'}
+            </td>
+
+            {/* Apellido */}
+            <td className="py-3 px-3 font-medium text-foreground">
+              {recentlyCreatedUser.apellido || '—'}
+            </td>
+
+            {/* Email */}
+            <td className="py-3 px-3 text-muted-foreground">
+              {recentlyCreatedUser.email || '—'}
+            </td>
+
+            {/* Contraseña */}
+            <td className="py-3 px-3 text-muted-foreground font-mono text-[11px]">
+              {recentlyCreatedUser.password || '••••••••'}
+            </td>
+
+            {/* País */}
+            <td className="py-3 px-3 text-foreground">
+              {recentlyCreatedUser.pais || '—'}
+            </td>
+
+            {/* Rol */}
+            <td className="py-3 px-3">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 capitalize">
+                {recentlyCreatedUser.rol_nombre || recentlyCreatedUser.rol_id || recentlyCreatedUser.rol || 'Nuevo Usuario'}
               </span>
-              <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${recentlyCreatedUser.estatus_membresia === 'activo' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-[#D80621]'}`}>
+            </td>
+
+            {/* Organización */}
+            <td className="py-3 px-3 text-foreground">
+              {recentlyCreatedUser.organizacion_nombre || recentlyCreatedUser.organizacion_id || recentlyCreatedUser.organizacion || '—'}
+            </td>
+
+            {/* Idioma Preferido */}
+            <td className="py-3 px-3 text-muted-foreground uppercase text-[10px]">
+              {recentlyCreatedUser.idioma_preferido || recentlyCreatedUser.idioma || '—'}
+            </td>
+
+            {/* Estatus Membresía */}
+            <td className="py-3 px-3">
+              <span className={`inline-flex items-center text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
+                recentlyCreatedUser.estatus_membresia === 'activo' 
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                  : 'bg-rose-500/10 text-[#D80621]'
+              }`}>
                 • {recentlyCreatedUser.estatus_membresia || 'activo'}
               </span>
-            </div>
-          </div>
-        </div>
+            </td>
 
-        {/* Indicador de ayuda */}
-        <p className="text-[11px] text-center text-muted-foreground">
-          Usa la barra de búsqueda o los filtros superiores para consultar la lista completa de usuarios.
-        </p>
-      </div>
-    ) : !hasSearched ? (
-      /* 2. ESTADO INICIAL (Antes de realizar búsquedas) */
-      <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
-        <div className="p-3 bg-muted rounded-full text-muted-foreground">
-          <Filter className="h-6 w-6" />
-        </div>
-        <p className="text-sm font-medium text-foreground">
-          Usa el botón de filtrado para buscar usuarios y realizar acciones en ellos.
-        </p>
-        <p className="text-xs text-muted-foreground max-w-sm">
-          Aplica parámetros por rol, país, idioma o elegibilidad de voto para realizar una consulta a la base de datos.
-        </p>
-      </div>
-    ) : isLoading ? (
+            {/* Elegible para votar */}
+            <td className="py-3 px-3 text-center">
+              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${
+                recentlyCreatedUser.es_elegible_para_votar || recentlyCreatedUser.puede_votar
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-muted text-muted-foreground'
+              }`}>
+                {recentlyCreatedUser.es_elegible_para_votar || recentlyCreatedUser.puede_votar ? 'Sí' : 'No'}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+) : !hasSearched ? (
+  /* 2. ESTADO INICIAL (Antes de realizar búsquedas) */
+  <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+    <div className="p-3 bg-muted rounded-full text-muted-foreground">
+      <Filter className="h-6 w-6" />
+    </div>
+    <p className="text-sm font-medium text-foreground">
+      Usa el botón de filtrado para buscar usuarios y realizar acciones en ellos.
+    </p>
+    <p className="text-xs text-muted-foreground max-w-sm">
+      Aplica parámetros por rol, país, idioma o elegibilidad de voto para realizar una consulta a la base de datos.
+    </p>
+  </div>
+) : isLoading ? (
+  /* 2. ESTADO INICIAL (Antes de realizar búsquedas) */
+  <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+    <div className="p-3 bg-muted rounded-full text-muted-foreground">
+      <Filter className="h-6 w-6" />
+    </div>
+    <p className="text-sm font-medium text-foreground">
+      Usa el botón de filtrado para buscar usuarios y realizar acciones en ellos.
+    </p>
+    <p className="text-xs text-muted-foreground max-w-sm">
+      Aplica parámetros por rol, país, idioma o elegibilidad de voto para realizar una consulta a la base de datos.
+    </p>
+  </div>
+) : isLoading ? (
       /* 3. ESTADO DE CARGA */
       <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
         <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
