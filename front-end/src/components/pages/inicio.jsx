@@ -62,6 +62,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
       onToggleTheme={onToggleTheme}
       badgeIcon={LayoutDashboard}
       badgeLabel={t.inicio?.badge || 'Dashboard'}
+      availableModuleIds={['inicio', 'networking', 'agenda']} /* 👈 Excluye 'confi_user' */
     >
       <main className="max-w-7xl mx-auto px-3 sm:px-6 space-y-4 sm:space-y-6 pb-20 sm:pb-12 animate-in fade-in-0 duration-300">
         
@@ -71,7 +72,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
             Bienvenido, {user.nombre} {user.apellido}
           </h1>
 
-          {/* TARJETA DE PERFIL INSTITUCIONAL (Sin el espacio en blanco superior) */}
+          {/* TARJETA DE PERFIL INSTITUCIONAL */}
           <Card className="border border-border bg-card shadow-sm overflow-hidden">
             <div className="p-3 sm:p-4">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
