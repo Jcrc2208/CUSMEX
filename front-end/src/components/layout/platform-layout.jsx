@@ -36,6 +36,7 @@ export default function PlatformLayout({
   onNavigate,
   showModulesMenu = true,
   showFloatingAI = true,
+  availableModuleIds = null, // 👈 Se agrega esta prop para recibir filtros opcionales
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isModulesOpen, setIsModulesOpen] = useState(false);
@@ -45,23 +46,42 @@ export default function PlatformLayout({
   const languageMenuRef = useRef(null);
   const t = COPY[language] ?? COPY.es;
   const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
-  const isAdmin = userRole === 'admin' || userRole=== 'administrador';
+  const isAdmin = userRole === 'admin' || userRole === 'administrador';
   const isSponsor = userRole === 'patrocinador';
-  const modules = t.modules.filter((module) => {
-      if (module.id === 'auth') return false;
-      if (module.adminOnly && !isAdmin) return false; 
+
+  // 🔹 FILTRADO DE MÓDULOS (OPCIÓN A)
+  const modules = t.modules
+    .filter((module) => {
+      // 1. Ocultar siempre auth y confi_user del menú desplegable
+      if (module.id === 'auth' || module.id === 'confi_user') return false;
+      
+      // 2. Si se pasa availableModuleIds, validar que el módulo esté permitido
+      if (availableModuleIds && Array.isArray(availableModuleIds) && !availableModuleIds.includes(module.id)) {
+        return false;
+      }
+
+      // 3. Permisos de Admin o Patrocinador
+      if (module.adminOnly && !isAdmin) return false;
       if (module.sponsorOrAdminOnly && !isAdmin && !isSponsor) return false;
+
       return true;
-    }).map((module) => ({...module,active: module.id === activeModuleId,}));
-  const currentLanguage = LANGUAGES.find((item) => item.code === language) ?? LANGUAGES[0];
+    })
+    .map((module) => ({ ...module, active: module.id === activeModuleId }));
+
+  const currentLanguage =
+    LANGUAGES.find((item) => item.code === language) ?? LANGUAGES[0];
 
   // Función integrada para comunicarse con el endpoint de FastAPI
-  const handleSendMessageToAI = async (inputText, currentUser, currentItemContent) => {
+  const handleSendMessageToAI = async (
+    inputText,
+    currentUser,
+    currentItemContent
+  ) => {
     try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
+      const response = await fetch('/api/chat', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           prompt: inputText,
@@ -75,12 +95,12 @@ export default function PlatformLayout({
       if (response.ok) {
         return data.response;
       } else {
-        console.error("Error del servidor:", data.detail);
-        return "Hubo un error al procesar tu solicitud con la IA.";
+        console.error('Error del servidor:', data.detail);
+        return 'Hubo un error al procesar tu solicitud con la IA.';
       }
     } catch (error) {
-      console.error("Error de red conectando con FastAPI:", error);
-      return "No se pudo conectar con el servidor de IA.";
+      console.error('Error de red conectando con FastAPI:', error);
+      return 'No se pudo conectar con el servidor de IA.';
     }
   };
 
@@ -106,10 +126,13 @@ export default function PlatformLayout({
       if (modulesMenuRef.current && !modulesMenuRef.current.contains(target)) {
         setIsModulesOpen(false);
       }
-      if (languageMenuRef.current && !languageMenuRef.current.contains(target)) {
+      if (
+        languageMenuRef.current &&
+        !languageMenuRef.current.contains(target)
+      ) {
         setIsLanguageOpen(false);
       }
-    }    
+    }
 
     function handleEscape(event) {
       if (event.key === 'Escape') {
@@ -130,10 +153,10 @@ export default function PlatformLayout({
   function handleLogout() {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_role');
-    window.location.hash = ''; 
-    window.location.reload(); 
+    window.location.hash = '';
+    window.location.reload();
   }
-  
+
   function closeMobileMenu() {
     setIsMobileMenuOpen(false);
   }
@@ -166,49 +189,58 @@ export default function PlatformLayout({
               {BadgeIcon && <BadgeIcon className="h-3.5 w-3.5" />}
               {badgeLabel}
             </span>
-            {isAuthenticated && showModulesMenu && (
-            <div className="modules-menu" ref={modulesMenuRef}>
-              <Button
-                type="button"
-                variant="ghost"
-                className="rounded-full px-3 text-muted-foreground hover:text-foreground"
-                aria-expanded={isModulesOpen}
-                aria-haspopup="menu"
-                onClick={() => {
-                  setIsLanguageOpen(false);
-                  setIsModulesOpen((open) => !open);
-                }}
-              >
-                {t.modulesButton}
-                <ChevronDown
-                  className={`ml-1 h-4 w-4 transition-transform ${isModulesOpen ? 'rotate-180' : ''}`}
-                />
-              </Button>
+            {isAuthenticated && (
+              <div className="modules-menu" ref={modulesMenuRef}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="rounded-full px-3 text-muted-foreground hover:text-foreground"
+                  aria-expanded={isModulesOpen}
+                  aria-haspopup="menu"
+                  onClick={() => {
+                    setIsLanguageOpen(false);
+                    setIsModulesOpen((open) => !open);
+                  }}
+                >
+                  {t.modulesButton}
+                  <ChevronDown
+                    className={`ml-1 h-4 w-4 transition-transform ${isModulesOpen ? 'rotate-180' : ''}`}
+                  />
+                </Button>
 
-              {isModulesOpen && (
-                <div className="modules-menu-panel animate-scale-in" role="menu">
-                  <p className="modules-menu-label">{t.modulesLabel}</p>
-                  {modules.map((module) => {
-                    const Icon = module.icon;
-                    return (
-                      <button
-                        key={module.id}
-                        type="button"
-                        role="menuitem"
-                        className={`modules-menu-item ${module.active ? 'is-active' : ''}`}
-                        onClick={() => handleModuleSelect(module)}
-                      >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        <span className="modules-menu-item-text">
-                          <span>{module.label}</span>
-                          {module.adminOnly && (
-                            <span className="modules-menu-badge">{t.adminBadge}</span>
-                          )}
-                        </span>
-                      </button>
-                    );
-                  })}
-                  <div className="my-1 border-t border-border"></div>
+                {isModulesOpen && (
+                  <div
+                    className="modules-menu-panel animate-scale-in"
+                    role="menu"
+                  >
+                    {showModulesMenu && (
+                      <>
+                        <p className="modules-menu-label">{t.modulesLabel}</p>
+                        {modules.map((module) => {
+                          const Icon = module.icon;
+                          return (
+                            <button
+                              key={module.id}
+                              type="button"
+                              role="menuitem"
+                              className={`modules-menu-item ${module.active ? 'is-active' : ''}`}
+                              onClick={() => handleModuleSelect(module)}
+                            >
+                              <Icon className="h-4 w-4 shrink-0" />
+                              <span className="modules-menu-item-text">
+                                <span>{module.label}</span>
+                                {module.adminOnly && (
+                                  <span className="modules-menu-badge">
+                                    {t.adminBadge}
+                                  </span>
+                                )}
+                              </span>
+                            </button>
+                          );
+                        })}
+                        <div className="my-1 border-t border-border"></div>
+                      </>
+                    )}
                     <button
                       type="button"
                       role="menuitem"
@@ -220,9 +252,9 @@ export default function PlatformLayout({
                         <span>{t.logout || 'Cerrar sesión'}</span>
                       </span>
                     </button>
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -241,11 +273,16 @@ export default function PlatformLayout({
                 }}
               >
                 <Languages className="h-4 w-4" />
-                <span className="language-toggle-code">{currentLanguage.short}</span>
+                <span className="language-toggle-code">
+                  {currentLanguage.short}
+                </span>
               </Button>
 
               {isLanguageOpen && (
-                <div className="language-menu-panel animate-scale-in" role="menu">
+                <div
+                  className="language-menu-panel animate-scale-in"
+                  role="menu"
+                >
                   <p className="modules-menu-label">{t.languageLabel}</p>
                   {LANGUAGES.map((item) => (
                     <button
@@ -271,47 +308,61 @@ export default function PlatformLayout({
               aria-label={isDarkMode ? t.themeToLight : t.themeToDark}
               onClick={onToggleTheme}
             >
-              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {isDarkMode ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
             </Button>
-            {isAuthenticated &&(
-            <button
-              type="button"
-              className="mobile-menu-toggle"
-              aria-label={isMobileMenuOpen ? t.closeMenu : t.openMenu}
-              aria-expanded={isMobileMenuOpen}
-              onClick={() => {
-                setIsModulesOpen(false);
-                setIsLanguageOpen(false);
-                setIsMobileMenuOpen((open) => !open);
-              }}
-            >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+            {isAuthenticated && (
+              <button
+                type="button"
+                className="mobile-menu-toggle"
+                aria-label={isMobileMenuOpen ? t.closeMenu : t.openMenu}
+                aria-expanded={isMobileMenuOpen}
+                onClick={() => {
+                  setIsModulesOpen(false);
+                  setIsLanguageOpen(false);
+                  setIsMobileMenuOpen((open) => !open);
+                }}
+              >
+                {isMobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </button>
             )}
           </div>
         </nav>
 
-        {isMobileMenuOpen && isAuthenticated && showModulesMenu &&(
+        {/* MENÚ MÓVIL (DRAWER) */}
+        {isMobileMenuOpen && isAuthenticated && (
           <div className="mobile-menu-drawer animate-scale-in">
-            <p className="mobile-menu-title">{t.modulesMobileTitle}</p>
-            {modules.map((module) => {
-              const Icon = module.icon;
-              return (
-                <Button
-                  key={module.id}
-                  variant={module.active ? 'secondary' : 'ghost'}
-                  className="w-full justify-start gap-2 rounded-lg px-3 py-2 text-left"
-                  onClick={() => handleModuleSelect(module)}
-                >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span className="whitespace-normal text-sm leading-snug">
-                    {module.label}
-                    {module.adminOnly ? ` · ${t.adminBadge}` : ''}
-                  </span>
-                </Button>
-              );
-            })}
-            <div className="my-1 border-t border-border"></div>
+            {showModulesMenu && (
+              <>
+                <p className="mobile-menu-title">{t.modulesMobileTitle}</p>
+                {modules.map((module) => {
+                  const Icon = module.icon;
+                  return (
+                    <Button
+                      key={module.id}
+                      variant={module.active ? 'secondary' : 'ghost'}
+                      className="w-full justify-start gap-2 rounded-lg px-3 py-2 text-left"
+                      onClick={() => handleModuleSelect(module)}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className="whitespace-normal text-sm leading-snug">
+                        {module.label}
+                        {module.adminOnly ? ` · ${t.adminBadge}` : ''}
+                      </span>
+                    </Button>
+                  );
+                })}
+                <div className="my-1 border-t border-border"></div>
+              </>
+            )}
+
             <Button
               variant="ghost"
               className="w-full justify-start gap-2 rounded-lg px-3 py-2 text-left text-red-500 hover:bg-red-500/10 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
@@ -327,9 +378,7 @@ export default function PlatformLayout({
       </header>
 
       {/* Contenido dinámico de los módulos */}
-      <main className="flex-1 w-full pb-12">
-        {children}
-      </main>
+      <main className="flex-1 w-full pb-12">{children}</main>
 
       {/* Footer de patrocinadores */}
       <footer className="sponsors-footer">
@@ -350,11 +399,16 @@ export default function PlatformLayout({
               ))}
             </div>
           </div>
-        </div>        
+        </div>
       </footer>
 
       {/* Botón Flotante del Asistente IA */}
-      {isAuthenticated && showFloatingAI && <FloatingAIButton language={language} onSendAI={handleSendMessageToAI} />}
+      {isAuthenticated && showFloatingAI && (
+        <FloatingAIButton
+          language={language}
+          onSendAI={handleSendMessageToAI}
+        />
+      )}
     </div>
   );
 }
