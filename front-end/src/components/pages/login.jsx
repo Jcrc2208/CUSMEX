@@ -20,10 +20,7 @@ export default function Login({
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  // se valida el inicio de olvidar contraseña en  el login pero aun queda validar con victor rosales
-  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
 
   const roleMenuRef = useRef(null);
 
@@ -32,10 +29,15 @@ export default function Login({
   const features = useMemo(() => getFeatures(language), [language]);
   const roleConfig = t.roles[accessRole] ?? t.roles.gobierno;
 
+  // 1. VALIDACIÓN EN TIEMPO REAL: Verifica que el texto termine exactamente en @cusmex.com
+  const isCusmexDomainValid = useMemo(() => {
+    const cleanEmail = email.trim().toLowerCase();
+    return cleanEmail.endsWith('@cusmex.com') && cleanEmail.length > 11;
+  }, [email]);
+
   useEffect(() => {
     function handlePointerDown(event) {
-      const target = event.target;
-      if (roleMenuRef.current && !roleMenuRef.current.contains(target)) {
+      if (roleMenuRef.current && !roleMenuRef.current.contains(event.target)) {
         setIsRoleOpen(false);
       }
     }
@@ -56,18 +58,27 @@ export default function Login({
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setErrorMessage('');
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Doble verificación al enviar
+    if (!cleanEmail.endsWith('@cusmex.com')) {
+      setErrorMessage('El correo debe incluir el dominio @cusmex.com');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      //const response = await fetch('http://localhost:8000/api/v1/auth/login', {
-      const response = await fetch ('api/v1/auth/login', {
+      const response = await fetch('api/v1/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           accessRole,
-          email,
+          email: cleanEmail,
           password,
           language,
         }),
@@ -76,43 +87,24 @@ export default function Login({
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('auth_token', data.token)
-        localStorage.setItem('user_role', data.user.role)
-        localStorage.setItem('userRole', data.user.role)
-        localStorage.setItem('userName', data.user.name)
+        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('user_role', data.user.role);
+        localStorage.setItem('userRole', data.user.role);
+        localStorage.setItem('userName', data.user.name);
 
         console.log('✅ Login exitoso:', data);
         navigateToModule('confi_user');
       } else {
-        console.error('❌ Error de login:', data.detail);
-        alert(data.detail || 'Credenciales incorrectas');
+        console.error('❌ Error de login:', data);
+        setErrorMessage(data.detail || data.message || 'Credenciales incorrectas');
       }
     } catch (error) {
       console.error('Error de conexión:', error);
-      alert('No se pudo conectar con el servidor.');
+      setErrorMessage('No se pudo conectar con el servidor.');
     } finally {
       setIsLoading(false);
     }
   }
-
-
-// se valida el inicio de olvidar contraseña en  el login pero aun queda validar con victor rosales
-const handlePasswordReset = async (email) => {
-  try {
-    const response = await fetch("/api/v1/auth/forgot-password", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email }),
-    });
-    const data = await response.json();
-    // Muestras un mensaje de éxito al usuario
-  } catch (error) {
-    // Manejo de errores
-  }
-};
-
 
   return (
     <PlatformLayout
@@ -127,7 +119,6 @@ const handlePasswordReset = async (email) => {
       <main className="hero-section">
         <div className="hero-content animate-fade-up">
           <p className="hero-kicker">{t.heroKicker}</p>
-
           <h1 className="hero-title">{t.heroTitle}</h1>
           <p className="hero-description">{t.heroDescription}</p>
 
@@ -162,6 +153,15 @@ const handlePasswordReset = async (email) => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                
+                {/* Banner de error */}
+                {errorMessage && (
+                  <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-md">
+                    {errorMessage}
+                  </div>
+                )}
+
+                {/* Selección de Rol */}
                 <div className="flex flex-col gap-2">
                   <Label>{t.accessType}</Label>
                   <div className="role-menu" ref={roleMenuRef}>
@@ -181,65 +181,47 @@ const handlePasswordReset = async (email) => {
 
                     {isRoleOpen && (
                       <div className="role-menu-panel animate-scale-in" role="listbox">
-                        <button
-                          type="button"
-                          className={`role-menu-item ${accessRole === 'gobierno' ? 'is-active' : ''}`}
-                          onClick={() => {
-                            setAccessRole('gobierno');
-                            setIsRoleOpen(false);
-                          }}
-                        >
-                          {currentRoles.gobierno.title}
-                        </button>
-                        <button
-                          type="button"
-                          className={`role-menu-item ${accessRole === 'empresas' ? 'is-active' : ''}`}
-                          onClick={() => {
-                            setAccessRole('empresas');
-                            setIsRoleOpen(false);
-                          }}
-                        >
-                          {currentRoles.empresas.title}
-                        </button>
-                        <button
-                          type="button"
-                          className={`role-menu-item ${accessRole === 'patrocinador' ? 'is-active' : ''}`}
-                          onClick={() => {
-                            setAccessRole('patrocinador');
-                            setIsRoleOpen(false);
-                          }}
-                        >
-                          {currentRoles.patrocinador.title}
-                        </button>
-                        <button
-                          type="button"
-                          className={`role-menu-item ${accessRole === 'admin' ? 'is-active' : ''}`}
-                          onClick={() => {
-                            setAccessRole('admin');
-                            setIsRoleOpen(false);
-                          }}
-                        >
-                          {currentRoles.admin.title}
-                        </button>                        
+                        {['gobierno', 'empresas', 'patrocinador', 'admin'].map((roleKey) => (
+                          <button
+                            key={roleKey}
+                            type="button"
+                            className={`role-menu-item ${accessRole === roleKey ? 'is-active' : ''}`}
+                            onClick={() => {
+                              setAccessRole(roleKey);
+                              setIsRoleOpen(false);
+                            }}
+                          >
+                            {currentRoles[roleKey]?.title}
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
                 </div>
 
+                {/* CAMPO DE CORREO SIMPLE (SIN NINGÚN CUADRO) */}
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="cusmex-email">{t.email}</Label>
                   <Input
                     id="cusmex-email"
                     type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    placeholder={roleConfig.placeholder}
+                    placeholder="usuario@cusmex.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (errorMessage) setErrorMessage('');
+                    }}
                     required
                   />
+                  {/* Advertencia si no incluye el dominio */}
+                  {email.length > 0 && !isCusmexDomainValid && (
+                    <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                      El correo debe incluir la extensión @cusmex.com
+                    </span>
+                  )}
                 </div>
 
+                {/* Campo Contraseña */}
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="cusmex-password">{t.password}</Label>
                   <Input
@@ -252,44 +234,52 @@ const handlePasswordReset = async (email) => {
                     required
                   />
                 </div>
-             <Button type="submit" className="rounded-full" disabled={isLoading}>
-               {isLoading ? '...' : t.enter}
-              </Button>
-             <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
-          <a 
 
+                {/* EL BOTÓN SOLO SE HABILITA SI EL CORREO TERMINA EN @cusmex.com */}
+                <Button 
+                  type="submit" 
+                  className="rounded-full" 
+                  disabled={isLoading || !isCusmexDomainValid || !password}
+                >
+                  {isLoading ? '...' : t.enter}
+                </Button>
 
+                <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+                  <a
+                    href="#forgot"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
 
-  href="#forgot" 
-  onClick={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log("¡Click detectado en Olvidé mi contraseña!");
-    
-    const email = prompt("Ingresa tu correo para recuperar contraseña:");
-    if (!email) return;
+                      const resetEmailInput = prompt("Ingresa tu correo completo (@cusmex.com):");
+                      if (!resetEmailInput) return;
 
-    fetch("/api/v1/auth/forgot-password", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email }),
-    })
-      .then(async (res) => {
-        const data = await res.json();
-        console.log("Respuesta del backend:", data);
-        alert(data.message || "¡Listo!");
-      })
-      .catch((err) => {
-        console.error("Error en la petición:", err);
-      });
-  }} 
-  className="text-muted-foreground hover:text-primary cursor-pointer"
->
-  {t.forgotPassword}
-</a>
-              </div>
+                      const cleanResetEmail = resetEmailInput.trim().toLowerCase();
+                      if (!cleanResetEmail.endsWith('@cusmex.com')) {
+                        alert("El correo debe terminar en @cusmex.com");
+                        return;
+                      }
+
+                      fetch("/api/v1/auth/forgot-password", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ email: cleanResetEmail }),
+                      })
+                        .then(async (res) => {
+                          const data = await res.json();
+                          alert(data.message || "Solicitud enviada con éxito.");
+                        })
+                        .catch((err) => {
+                          console.error("Error en la petición:", err);
+                        });
+                    }}
+                    className="text-muted-foreground hover:text-primary cursor-pointer"
+                  >
+                    {t.forgotPassword}
+                  </a>
+                </div>
               </form>
             </CardContent>
           </Card>

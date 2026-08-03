@@ -247,7 +247,7 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {profile.offering?.map((tag) => (
-                  <span key={tag} className="rounded-md bg-[#2563EB]/10 text-[#2563EB] px-2 py-0.5 text-[11px] font-medium border border-[#2563EB]/20">
+                  <span key={tag} className="rounded-md bg-[#D4AF37]/10 text-[#D4AF37] px-2 py-0.5 text-[11px] font-medium border border-[#D4AF37]/20">
                     {tag}
                   </span>
                 ))}

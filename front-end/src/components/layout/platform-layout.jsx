@@ -7,7 +7,6 @@ import {
   Languages,
   X,
   LogOut,
-  Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { COPY, LANGUAGES } from '../pages/login-i18n';
@@ -35,6 +34,8 @@ export default function PlatformLayout({
   badgeLabel,
   children,
   onNavigate,
+  showModulesMenu = true,
+  showFloatingAI = true,
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isModulesOpen, setIsModulesOpen] = useState(false);
@@ -42,8 +43,6 @@ export default function PlatformLayout({
   const isAuthenticated = !!localStorage.getItem('auth_token');
   const modulesMenuRef = useRef(null);
   const languageMenuRef = useRef(null);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const notificationsRef = useRef(null);
   const t = COPY[language] ?? COPY.es;
   const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
   const isAdmin = userRole === 'admin' || userRole=== 'administrador';
@@ -110,9 +109,6 @@ export default function PlatformLayout({
       if (languageMenuRef.current && !languageMenuRef.current.contains(target)) {
         setIsLanguageOpen(false);
       }
-      if (notificationsRef.current && !notificationsRef.current.contains(target)) {
-        setIsNotificationsOpen(false);
-      }
     }    
 
     function handleEscape(event) {
@@ -161,7 +157,7 @@ export default function PlatformLayout({
       <header className="navbar-container animate-fade-down">
         <nav className="navbar-pill">
           <div className="navbar-logo">
-            <strong>NATP Nexus</strong>
+            <strong>NexusMatch</strong>
             <span className="navbar-logo-sub">Oakland Edition</span>
           </div>
 
@@ -170,7 +166,7 @@ export default function PlatformLayout({
               {BadgeIcon && <BadgeIcon className="h-3.5 w-3.5" />}
               {badgeLabel}
             </span>
-            {isAuthenticated && (
+            {isAuthenticated && showModulesMenu && (
             <div className="modules-menu" ref={modulesMenuRef}>
               <Button
                 type="button"
@@ -231,46 +227,6 @@ export default function PlatformLayout({
           </div>
 
           <div className="navbar-right-actions">
-            {isAuthenticated && (
-              <div className="relative flex items-center" ref={notificationsRef}>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="theme-toggle-btn rounded-full relative mr-1"
-                  onClick={() => {
-                    setIsModulesOpen(false);
-                    setIsLanguageOpen(false);
-                    setIsMobileMenuOpen(false);
-                    setIsNotificationsOpen((open) => !open); // Abre/cierra el panel
-                  }}
-                >
-                  <Bell className="h-4 w-4" />
-                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 border border-background"></span>
-                </Button>
-
-                {isNotificationsOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-72 bg-background border border-border rounded-lg shadow-lg p-4 z-50 animate-scale-in">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="font-semibold text-sm">Tus pendientes</p>
-                      <span className="text-[10px] text-muted-foreground cursor-pointer hover:underline">Marcar leídas</span>
-                    </div>
-                    <div className="space-y-3">
-                       {/* Pendiente 1 */}
-                       <div className="text-xs hover:bg-muted/50 p-2 rounded-md transition-colors cursor-pointer">
-                         <p className="font-semibold text-primary">Votación requerida</p>
-                         <p className="text-muted-foreground mt-0.5">La Resolución Institucional #42 cierra en 45 min. Requiere tu voto.</p>
-                       </div>
-                       {/* Pendiente 2 */}
-                       <div className="text-xs border-t border-border pt-3 hover:bg-muted/50 p-2 rounded-md transition-colors cursor-pointer">
-                         <p className="font-semibold text-primary">Reunión confirmada</p>
-                         <p className="text-muted-foreground mt-0.5">Matchmaking con Tesla aceptado para hoy a las 11:00 AM.</p>
-                       </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
             <div className="language-menu" ref={languageMenuRef}>
               <Button
                 type="button"
@@ -335,7 +291,7 @@ export default function PlatformLayout({
           </div>
         </nav>
 
-        {isMobileMenuOpen && isAuthenticated &&(
+        {isMobileMenuOpen && isAuthenticated && showModulesMenu &&(
           <div className="mobile-menu-drawer animate-scale-in">
             <p className="mobile-menu-title">{t.modulesMobileTitle}</p>
             {modules.map((module) => {
@@ -398,7 +354,7 @@ export default function PlatformLayout({
       </footer>
 
       {/* Botón Flotante del Asistente IA */}
-      {isAuthenticated &&<FloatingAIButton language={language} onSendAI={handleSendMessageToAI} />}
+      {isAuthenticated && showFloatingAI && <FloatingAIButton language={language} onSendAI={handleSendMessageToAI} />}
     </div>
   );
 }
