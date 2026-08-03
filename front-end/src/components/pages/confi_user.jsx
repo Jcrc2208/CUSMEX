@@ -79,7 +79,6 @@ export default function ConfiUser({
     // Step 1: Usuarios y Cuenta
     nombre: '',
     apellido: '',
-    emailPrefix: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -100,18 +99,33 @@ export default function ConfiUser({
     temas: []
   });
 
-  // Manejo de cambios en los inputs (incluyendo autocompletado de correo)
+// Valida que el correo sea institucional @cusmex.com
+  const isEmailValid = () => {
+    const email = formData.email.trim();
+    return (
+      email !== '' &&
+      /^[a-zA-Z0-9._%+-]+@cusmex\.com$/i.test(email)
+    );
+  };
+
+  // Manejo de cambios en los inputs
   const handleInputChange = (field, value) => {
-    if (field === 'emailPrefix') {
-      const cleanPrefix = value.replace(/[\s@]/g, '');
-      setFormData(prev => ({
-        ...prev,
-        emailPrefix: cleanPrefix,
-        email: cleanPrefix ? `${cleanPrefix}@natp.com` : ''
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const isLinkedinValid = () => {
+    const url = formData.linkedin.trim();
+    if (!url) return false;
+    let parsed;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return false;
     }
+    return (
+      (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
+      /(^|\.)linkedin\.com$/i.test(parsed.hostname)
+    );
   };
 
   const toggleSelection = (arrayField, itemId) => {
@@ -134,7 +148,7 @@ export default function ConfiUser({
         return (
           formData.nombre.trim() !== '' &&
           formData.apellido.trim() !== '' &&
-          formData.emailPrefix.trim() !== '' &&
+          isEmailValid() &&
           formData.password.trim() !== '' &&
           formData.password.length >= 6 &&
           formData.password === formData.confirmPassword &&
@@ -147,7 +161,7 @@ export default function ConfiUser({
           formData.interes_comercial.trim() !== '' &&
           formData.objetivos_inversion.trim() !== '' &&
           formData.tipo_conexion_buscada.trim() !== '' &&
-          formData.linkedin.trim() !== ''
+          isLinkedinValid()
         );
       case 3:
         return formData.temas.length > 0;
@@ -196,6 +210,7 @@ export default function ConfiUser({
       isInteractive={false}
       showFloatingAI={false}
       showNotifications={false}
+      showModulesMenu={false}
     >
       <main className="max-w-3xl mx-auto px-4 sm:px-6 space-y-6 animate-in fade-in-0 duration-500 py-6 pointer-events-auto">
         
@@ -260,23 +275,22 @@ export default function ConfiUser({
                   />
                 </div>
 
-                {/* CORREO AUTOCOMPLETADO @natp.com */}
+                {/* CORREO AUTOCOMPLETADO @cusmex.com */}
                 <div className="space-y-1.5 sm:col-span-2">
                   <label className="text-xs font-medium flex items-center gap-1">
                     <Mail className="h-3.5 w-3.5 text-muted-foreground" /> Correo Institucional *
                   </label>
-                  <div className="flex items-center">
-                    <Input 
-                      type="text"
-                      placeholder="usuario"
-                      className="rounded-r-none focus-visible:z-10"
-                      value={formData.emailPrefix} 
-                      onChange={(e) => handleInputChange('emailPrefix', e.target.value)} 
-                    />
-                    <span className="inline-flex items-center px-3 h-9 rounded-r-md border border-l-0 border-input bg-muted text-muted-foreground text-xs font-semibold select-none">
-                      @natp.com
-                    </span>
-                  </div>
+                  <Input 
+                    type="email"
+                    placeholder="usuario@cusmex.com"
+                    value={formData.email} 
+                    onChange={(e) => handleInputChange('email', e.target.value)} 
+                  />
+                  {formData.email.trim() !== '' && !isEmailValid() && (
+                    <p className="text-[10px] text-destructive font-medium mt-1">
+                      El correo debe ser institucional, con el dominio @cusmex.com (ej. usuario@cusmex.com).
+                    </p>
+                  )}
                 </div>
 
                 {/* CONTRASEÑA */}
