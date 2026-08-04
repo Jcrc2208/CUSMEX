@@ -116,15 +116,15 @@ export default function ConfiUser({
     password: '',
     confirmPassword: '',
     pais: '',
-    idioma_preferido: 'es',       // enum('es','en','fr')
-    organizacion_id: '',         // char(36) -> FK de la tabla organizaciones
-    rol_id: '',                  // char(36) -> FK de la tabla roles
+    idioma_preferido: '',
+    organizacion_id: '',         // texto libre
+    rol_id: '',                  // texto libre
     interes_comercial: '',
     objetivos_inversion: '',
     interes_export_import: 'ambos',
     tipo_conexion_buscada: '',
     linkedin: '',
-    temas: []
+    temas: ''
   });
 
   const isEmailValid = () => {
@@ -154,19 +154,6 @@ export default function ConfiUser({
     );
   };
 
-  const toggleSelection = (arrayField, itemId) => {
-    setFormData(prev => {
-      const current = prev[arrayField];
-      const exists = current.includes(itemId);
-      return {
-        ...prev,
-        [arrayField]: exists 
-          ? current.filter(id => id !== itemId) 
-          : [...current, itemId]
-      };
-    });
-  };
-
   // Validación estricta incluyendo rol_id y organizacion_id
   const isStepValid = () => {
     switch (currentStep) {
@@ -192,7 +179,7 @@ export default function ConfiUser({
           isLinkedinValid()
         );
       case 3:
-        return formData.temas.length > 0;
+        return formData.temas.trim() !== '';
       default:
         return false;
     }
@@ -298,7 +285,6 @@ export default function ConfiUser({
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium">Nombre *</label>
                   <Input 
-                    placeholder="Tu nombre"
                     value={formData.nombre} 
                     onChange={(e) => handleInputChange('nombre', e.target.value)} 
                   />
@@ -306,7 +292,6 @@ export default function ConfiUser({
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium">Apellido *</label>
                   <Input 
-                    placeholder="Tu apellido"
                     value={formData.apellido} 
                     onChange={(e) => handleInputChange('apellido', e.target.value)} 
                   />
@@ -319,7 +304,7 @@ export default function ConfiUser({
                   </label>
                   <Input 
                     type="email"
-                    placeholder="usuario@cusmex.com"
+                    placeholder="user@cusmex.com"
                     value={formData.email} 
                     onChange={(e) => handleInputChange('email', e.target.value)} 
                   />
@@ -366,68 +351,43 @@ export default function ConfiUser({
                   <label className="text-xs font-medium flex items-center gap-1">
                     <Building2 className="h-3.5 w-3.5 text-muted-foreground" /> Organización *
                   </label>
-                  <select 
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    value={formData.organizacion_id}
-                    onChange={(e) => handleInputChange('organizacion_id', e.target.value)}
-                  >
-                    <option value="">Selecciona tu organización...</option>
-                    {ORGANIZATION_OPTIONS.map((org) => (
-                      <option key={org.id} value={org.id}>
-                        {org.nombre}
-                      </option>
-                    ))}
-                  </select>
+                  <Input 
+                    type="text"
+                    value={formData.organizacion_id} 
+                    onChange={(e) => handleInputChange('organizacion_id', e.target.value)} 
+                  />
                 </div>
 
-                {/* ROL EN EL SISTEMA (rol_id) */}
+                {/* ROL EN EL SISTEMA */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium flex items-center gap-1">
                     <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground" /> Rol en la Plataforma *
                   </label>
-                  <select 
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    value={formData.rol_id}
-                    onChange={(e) => handleInputChange('rol_id', e.target.value)}
-                  >
-                    <option value="">Selecciona tu rol...</option>
-                    {ROLE_OPTIONS.map((role) => (
-                      <option key={role.id} value={role.id}>
-                        {role.nombre}
-                      </option>
-                    ))}
-                  </select>
+                  <Input 
+                    type="text"
+                    value={formData.rol_id} 
+                    onChange={(e) => handleInputChange('rol_id', e.target.value)} 
+                  />
                 </div>
 
                 {/* PAÍS DE REPRESENTACIÓN */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium">País de representación *</label>
-                  <select 
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    value={formData.pais}
-                    onChange={(e) => handleInputChange('pais', e.target.value)}
-                  >
-                    <option value="">Selecciona tu país...</option>
-                    {COUNTRY_OPTIONS.map((country, idx) => (
-                      <option key={idx} value={country}>
-                        {country}
-                      </option>
-                    ))}
-                  </select>
+                  <Input 
+                    type="text"
+                    value={formData.pais} 
+                    onChange={(e) => handleInputChange('pais', e.target.value)} 
+                  />
                 </div>
 
                 {/* IDIOMA PREFERIDO */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium">Idioma Preferido *</label>
-                  <select 
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    value={formData.idioma_preferido}
-                    onChange={(e) => handleInputChange('idioma_preferido', e.target.value)}
-                  >
-                    <option value="es">Español (ES)</option>
-                    <option value="en">English (EN)</option>
-                    <option value="fr">Français (FR)</option>
-                  </select>
+                  <Input 
+                    type="text"
+                    value={formData.idioma_preferido} 
+                    onChange={(e) => handleInputChange('idioma_preferido', e.target.value)} 
+                  />
                 </div>
               </div>
             )}
@@ -457,50 +417,29 @@ export default function ConfiUser({
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium">Interés Comercial *</label>
-                  <select
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    value={formData.interes_comercial}
-                    onChange={(e) => handleInputChange('interes_comercial', e.target.value)}
-                  >
-                    <option value="">Selecciona tu interés comercial...</option>
-                    {COMMERCIAL_INTEREST_OPTIONS.map((interest, idx) => (
-                      <option key={idx} value={interest}>
-                        {interest}
-                      </option>
-                    ))}
-                  </select>
+                  <Input 
+                    type="text"
+                    value={formData.interes_comercial} 
+                    onChange={(e) => handleInputChange('interes_comercial', e.target.value)} 
+                  />
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium">Objetivos de Inversión / Proyectos *</label>
-                  <select
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    value={formData.objetivos_inversion}
-                    onChange={(e) => handleInputChange('objetivos_inversion', e.target.value)}
-                  >
-                    <option value="">Selecciona un objetivo...</option>
-                    {INVESTMENT_GOALS_OPTIONS.map((goal, idx) => (
-                      <option key={idx} value={goal}>
-                        {goal}
-                      </option>
-                    ))}
-                  </select>
+                  <Input 
+                    type="text"
+                    value={formData.objetivos_inversion} 
+                    onChange={(e) => handleInputChange('objetivos_inversion', e.target.value)} 
+                  />
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium">Tipo de Conexión Buscada *</label>
-                  <select
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    value={formData.tipo_conexion_buscada}
-                    onChange={(e) => handleInputChange('tipo_conexion_buscada', e.target.value)}
-                  >
-                    <option value="">Selecciona un tipo de conexión...</option>
-                    {CONNECTION_TYPES_OPTIONS.map((conn, idx) => (
-                      <option key={idx} value={conn}>
-                        {conn}
-                      </option>
-                    ))}
-                  </select>
+                  <Input 
+                    type="text"
+                    value={formData.tipo_conexion_buscada} 
+                    onChange={(e) => handleInputChange('tipo_conexion_buscada', e.target.value)} 
+                  />
                 </div>
 
                 <div className="space-y-1.5">
@@ -526,28 +465,13 @@ export default function ConfiUser({
                     Temas de Interés (Feed e Inteligencia) *
                   </label>
                   <p className="text-xs text-muted-foreground">
-                    Selecciona al menos un tema para personalizar el contenido que verás en la plataforma.
+                    Escribe los temas que te interesan para personalizar el contenido que verás en la plataforma.
                   </p>
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {AVAILABLE_TOPICS.map((topic) => {
-                      const isSelected = formData.temas.includes(topic.id);
-                      return (
-                        <button
-                          key={topic.id}
-                          type="button"
-                          onClick={() => toggleSelection('temas', topic.id)}
-                          className={`px-3 py-1.5 rounded-full text-xs transition-all flex items-center gap-1.5 ${
-                            isSelected 
-                              ? 'bg-primary text-primary-foreground font-medium shadow-xs' 
-                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                          }`}
-                        >
-                          <Sparkles className="h-3 w-3" />
-                          {topic.nombre}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <Input 
+                    type="text"
+                    value={formData.temas} 
+                    onChange={(e) => handleInputChange('temas', e.target.value)} 
+                  />
                 </div>
               </div>
             )}
