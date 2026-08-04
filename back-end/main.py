@@ -157,6 +157,9 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+# Traemos la organización relacionada para mandar su nombre
+    org = db.query(Organizacion).filter(Organizacion.id == user.organizacion_id).first()
+    org_nombre = org.nombre if org else "Organización Independiente"
 
     return {
         "message": "Login exitoso",
@@ -165,10 +168,13 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             "id": user.id,
             "email": user.email,
             "name": user.nombre,
-            "role": rol_nombre
+            "apellido": user.apellido,
+            "role": rol_nombre,
+            "organizacion": org_nombre,
+            "pais": user.pais,
+            "estatus_membresia": user.estatus_membresia
         }
     }
-
 # 6. Endpoint de Chat con IA (Groq)
 @app.post("/api/chat")
 async def chat_with_ai(data: ChatRequest):
@@ -354,7 +360,6 @@ async def admin_crear_usuario(data: AdminCreateUserRequest, db: Session = Depend
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error interno al crear usuario: {str(e)}")
-
 @app.post("/api/v1/auth/registro-completo", status_code=201)
 async def registro_completo(data: InitialSetupRequest, db: Session = Depends(get_db)):
     if not data.acepta_terminos:
@@ -363,7 +368,8 @@ async def registro_completo(data: InitialSetupRequest, db: Session = Depends(get
     existing_user = db.query(Usuario).filter(Usuario.email == data.email.strip()).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="El correo electrónico ya se encuentra registrado.")
-# 1. Gestionar la organización al vuelo mediante el texto libre ingresado
+        
+    # 1. Gestionar la organización al vuelo mediante el texto libre ingresado
     org_nombre_clean = data.organizacion_nombre.strip()
     org = db.query(Organizacion).filter(Organizacion.nombre == org_nombre_clean).first()
     if not org:
@@ -371,7 +377,7 @@ async def registro_completo(data: InitialSetupRequest, db: Session = Depends(get
             id=str(uuid.uuid4()),
             nombre=org_nombre_clean,
             pais=data.pais.strip(),
-            sector="Independiente" # O puedes capturar el sector libre si lo agregas al payload
+            sector="Independiente"
         )
         db.add(org)
         db.flush()
@@ -389,6 +395,7 @@ async def registro_completo(data: InitialSetupRequest, db: Session = Depends(get
         db.add(rol)
         db.flush()
     rol_id = rol.id
+    
     try:
         raw_password = data.password.encode('utf-8')
         hashed_pw = bcrypt.hashpw(raw_password, bcrypt.gensalt()).decode('utf-8')
@@ -428,7 +435,12 @@ async def registro_completo(data: InitialSetupRequest, db: Session = Depends(get
             "user": {
                 "id": nuevo_usuario.id,
                 "email": nuevo_usuario.email,
-                "name": nuevo_usuario.nombre
+                "name": nuevo_usuario.nombre,
+                "apellido": nuevo_usuario.apellido,
+                "role": rol.nombre,
+                "organizacion": org.nombre,
+                "pais": nuevo_usuario.pais,
+                "estatus_membresia": nuevo_usuario.estatus_membresia
             }
         }
     except Exception as e:

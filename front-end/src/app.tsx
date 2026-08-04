@@ -63,6 +63,7 @@ export default function App() {
   };
 
   const isAuthenticated = !!localStorage.getItem('auth_token');
+  const userProfile = localStorage.getItem('user_profile') ? JSON.parse(localStorage.getItem('user_profile') || '{}') : null;
 
   // Configuración de Usuario
   if (route.moduleId === 'confi_user' || route.moduleId === 'Configuración Inicial') {
@@ -76,17 +77,17 @@ export default function App() {
 
   // Enrutamiento según route.moduleId
   if (route.moduleId === 'inicio') {
-    return <Inicio {...sharedProps} />;
+    return <Inicio {...sharedProps} userProfile={userProfile} />;
   }
 
   if (route.moduleId === 'agenda') {
-    return <Agenda sessionId={route.sessionId} {...sharedProps} />;
+    return <Agenda sessionId={route.sessionId} {...sharedProps} userProfile={userProfile} />;
   }
 
   if (route.moduleId === 'networking') {
-    return <Networking {...sharedProps} />;
+    return <Networking {...sharedProps} userProfile={userProfile} />;
   }
 
   // 🛡️ FALLBACK: Si entra a un hash desconocido o no contemplado
-  return <Inicio {...sharedProps} />;
+  return <Inicio {...sharedProps} userProfile={userProfile} />;
 }

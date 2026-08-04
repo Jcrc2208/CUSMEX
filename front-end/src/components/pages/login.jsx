@@ -60,16 +60,20 @@ export default function Login({
 
       const data = await response.json();
 
-      if (response.ok) {
+ if (response.ok) {
         localStorage.setItem('auth_token', data.token);
         localStorage.setItem('user_role', data.user.role);
         localStorage.setItem('userRole', data.user.role);
         localStorage.setItem('userName', data.user.name);
+        
+        // Almacenar el perfil del usuario en localStorage para su uso posterior
+        localStorage.setItem('user_profile', JSON.stringify(data.user));
 
         console.log('✅ Login exitoso:', data);
         // Redirección al módulo de inicio
         navigateToModule('inicio');
-      } else {
+      }
+      else {
         console.error('❌ Error de login:', data);
         setErrorMessage(data.detail || data.message || 'Credenciales incorrectas');
       }

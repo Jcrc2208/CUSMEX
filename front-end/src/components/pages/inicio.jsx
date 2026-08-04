@@ -17,14 +17,14 @@ import { navigateToModule } from '@/config/platform-modules';
 export default function Inicio({ language, onLanguageChange, isDarkMode, onToggleTheme, userProfile }) {
   const t = COPY[language] ?? COPY.es;
 
-  // 1. Datos del Usuario / Perfil
-  const user = userProfile ?? {
-    nombre: 'Carlos',
-    apellido: 'Mendoza',
-    rol: 'Delegado Titular',
-    organizacion: 'Cámara de Comercio e Industria',
-    pais: 'México',
-    estatusMembresia: 'Activa',
+  // 1. Datos Reales del Usuario mapeados desde userProfile (con respaldo seguro)
+  const user = {
+    nombre: userProfile?.name || userProfile?.nombre || 'Usuario',
+    apellido: userProfile?.apellido || '',
+    rol: userProfile?.role || userProfile?.rol || 'Empresa / Participante',
+    organizacion: userProfile?.organizacion || userProfile?.organizacion_nombre || 'Organización Independiente',
+    pais: userProfile?.pais || 'México',
+    estatusMembresia: userProfile?.estatus_membresia === 'activo' ? 'Activa' : (userProfile?.estatusMembresia || 'Activa'),
   };
 
   // 2. Estadísticas Globales de la Plataforma
@@ -62,7 +62,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
       onToggleTheme={onToggleTheme}
       badgeIcon={LayoutDashboard}
       badgeLabel={t.inicio?.badge || 'Dashboard'}
-      availableModuleIds={['inicio', 'networking', 'agenda']} /* 👈 Excluye 'confi_user' */
+      availableModuleIds={['inicio', 'networking', 'agenda']}
     >
       <main className="max-w-7xl mx-auto px-3 sm:px-6 space-y-4 sm:space-y-6 pb-20 sm:pb-12 animate-in fade-in-0 duration-300">
         
@@ -78,7 +78,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
                 <div className="bg-muted/30 p-2.5 rounded-lg border border-border/40">
                   <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Rol</p>
-                  <p className="font-semibold text-foreground text-xs sm:text-sm mt-0.5 truncate">{user.rol}</p>
+                  <p className="font-semibold text-foreground text-xs sm:text-sm mt-0.5 truncate capitalize">{user.rol}</p>
                 </div>
 
                 <div className="bg-muted/30 p-2.5 rounded-lg border border-border/40">
