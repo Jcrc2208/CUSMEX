@@ -94,12 +94,18 @@ class InitialSetupRequest(BaseModel):
     apellido: str
     email: EmailStr
     password: str
-    organizacion_nombre: str
+    organizacion_nombre: str  # Texto libre que ingresa el usuario
     pais: str
-    interes_comercial: List[str]
-    objetivos_inversion: List[str]
-    tipos_conexion: List[str]
-    comites_participantes: List[str]
+    rol_id: str = "empresas"  # Rol por defecto o seleccionado en el flujo
+    idioma_preferido: str = "es"
+    estatus_membresia: str = "activo"
+    es_elegible_para_votar: bool = False
+    interes_export_import: str = "ninguno"
+    interes_comercial: str
+    objetivos_inversion: str
+    tipo_conexion_buscada: str
+    linkedin: str
+    temas: str
     acepta_terminos: bool
 
 class AdminCreateUserRequest(BaseModel):
@@ -279,20 +285,41 @@ async def voice_assistant(file: UploadFile = File(...), language: str = Form(...
 # ==========================================
 # 11. ENDPOINTS DE ADMINISTRACIÓN (Alta y Baja)
 # ==========================================
-
 @app.post("/api/v1/admin/usuarios", status_code=201)
 async def admin_crear_usuario(data: AdminCreateUserRequest, db: Session = Depends(get_db)):
+    # 1. Validar correo existente
     existing_user = db.query(Usuario).filter(Usuario.email == data.email.strip()).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="El correo electrónico ya se encuentra registrado.")
 
+    # 2. Gestionar la Organización (Si el usuario escribió un nombre en lugar de un ID UUID)
+    org_id = data.organizacion_id
+    # Verificamos si es un UUID válido o si es el nombre de una nueva organización
+    org = db.query(Organizacion).filter(Organizacion.id == org_id).first()
+    if not org:
+        # Si no existe como ID, asumimos que es el nombre y la creamos en limpio
+        org = db.query(Organizacion).filter(Organizacion.nombre == org_id.strip()).first()
+        if not org:
+            org = Organizacion(
+                id=str(uuid.uuid4()),
+                nombre=org_id.strip(),
+                pais=data.pais.strip(),
+                sector="General" # O el sector que corresponda por defecto
+            )
+            db.add(org)
+            db.flush()
+        org_id = org.id
+
+    # 3. Validar Rol
     rol = db.query(Rol).filter(Rol.id == data.rol_id).first()
     if not rol:
-        raise HTTPException(status_code=404, detail="El rol especificado no existe.")
-
-    org = db.query(Organizacion).filter(Organizacion.id == data.organizacion_id).first()
-    if not org:
-        raise HTTPException(status_code=404, detail="La organización especificada no existe.")
+        # Si el rol viene como nombre (ej. "empresas"), lo buscamos o creamos
+        rol = db.query(Rol).filter(Rol.nombre == data.rol_id).first()
+        if not rol:
+            raise HTTPException(status_code=404, detail="El rol especificado no existe.")
+        rol_id = rol.id
+    else:
+        rol_id = rol.id
 
     try:
         raw_password = data.password.encode('utf-8')
@@ -300,8 +327,8 @@ async def admin_crear_usuario(data: AdminCreateUserRequest, db: Session = Depend
 
         nuevo_usuario = Usuario(
             id=str(uuid.uuid4()),
-            rol_id=data.rol_id,
-            organizacion_id=data.organizacion_id,
+            rol_id=rol_id,
+            organizacion_id=org_id,
             nombre=data.nombre.strip(),
             apellido=data.apellido.strip(),
             email=data.email.strip(),
@@ -317,7 +344,7 @@ async def admin_crear_usuario(data: AdminCreateUserRequest, db: Session = Depend
 
         return {
             "status": "success",
-            "message": "Usuario creado correctamente por el administrador.",
+            "message": "Usuario y organización registrados correctamente.",
             "user": {
                 "id": nuevo_usuario.id,
                 "email": nuevo_usuario.email,
@@ -328,19 +355,82 @@ async def admin_crear_usuario(data: AdminCreateUserRequest, db: Session = Depend
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error interno al crear usuario: {str(e)}")
 
-@app.delete("/api/v1/admin/usuarios/{usuario_id}")
-async def admin_eliminar_usuario(usuario_id: str, db: Session = Depends(get_db)):
-    user = db.query(Usuario).filter(Usuario.id == usuario_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+@app.post("/api/v1/auth/registro-completo", status_code=201)
+async def registro_completo(data: InitialSetupRequest, db: Session = Depends(get_db)):
+    if not data.acepta_terminos:
+        raise HTTPException(status_code=400, detail="Debe aceptar los términos y condiciones.")
 
+    existing_user = db.query(Usuario).filter(Usuario.email == data.email.strip()).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="El correo electrónico ya se encuentra registrado.")
+# 1. Gestionar la organización al vuelo mediante el texto libre ingresado
+    org_nombre_clean = data.organizacion_nombre.strip()
+    org = db.query(Organizacion).filter(Organizacion.nombre == org_nombre_clean).first()
+    if not org:
+        org = Organizacion(
+            id=str(uuid.uuid4()),
+            nombre=org_nombre_clean,
+            pais=data.pais.strip(),
+            sector="Independiente" # O puedes capturar el sector libre si lo agregas al payload
+        )
+        db.add(org)
+        db.flush()
+    org_id = org.id
+
+    # 2. Gestionar el Rol al vuelo de forma libre (Si no existe, se crea con el texto ingresado)
+    rol_input = data.rol_id.strip() if data.rol_id else "empresas"
+    rol = db.query(Rol).filter((Rol.id == rol_input) | (Rol.nombre == rol_input)).first()
+    if not rol:
+        rol = Rol(
+            id=str(uuid.uuid4()),
+            nombre=rol_input,
+            descripcion=f"Rol dinámico registrado: {rol_input}"
+        )
+        db.add(rol)
+        db.flush()
+    rol_id = rol.id
     try:
-        db.delete(user)
+        raw_password = data.password.encode('utf-8')
+        hashed_pw = bcrypt.hashpw(raw_password, bcrypt.gensalt()).decode('utf-8')
+
+        nuevo_usuario = Usuario(
+            id=str(uuid.uuid4()),
+            rol_id=rol_id,
+            organizacion_id=org_id,
+            nombre=data.nombre.strip(),
+            apellido=data.apellido.strip(),
+            email=data.email.strip(),
+            password_hash=hashed_pw,
+            pais=data.pais.strip(),
+            idioma_preferido=data.idioma_preferido,
+            estatus_membresia=data.estatus_membresia,
+            es_elegible_para_votar=data.es_elegible_para_votar
+        )
+        db.add(nuevo_usuario)
+        db.flush()
+
+        # 3. Guardar información comercial y profesional
+        nuevo_perfil = PerfilNegocio(
+            usuario_id=nuevo_usuario.id,
+            interes_export_import=data.interes_export_import,
+            ofrece=f"Comercial: {data.interes_comercial} | Temas: {data.temas}",
+            busca=f"Inversión: {data.objetivos_inversion} | Conexión: {data.tipo_conexion_buscada}",
+            linkedin_url=data.linkedin
+        )
+        db.add(nuevo_perfil)
+
         db.commit()
+        db.refresh(nuevo_usuario)
+
         return {
             "status": "success",
-            "message": f"Usuario con ID {usuario_id} eliminado correctamente."
+            "message": "Registro completo exitoso.",
+            "user": {
+                "id": nuevo_usuario.id,
+                "email": nuevo_usuario.email,
+                "name": nuevo_usuario.nombre
+            }
         }
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error al eliminar el usuario: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error interno al registrar: {str(e)}")

@@ -154,6 +154,107 @@ export default function ConfiUser({
     );
   };
 
+// Módulo de validación y envío para el Registro Público (CUSMEX)
+const handleSubmit = async () => {
+  // 1. Validar que las contraseñas coincidan antes de enviar
+  if (formData.password !== formData.confirmPassword) {
+    alert("Las contraseñas no coinciden");
+    return;
+  }
+
+  // 2. Armar el payload completo con las llaves que espera InitialSetupRequest
+  const payload = {
+    nombre: formData.nombre,
+    apellido: formData.apellido,
+    email: formData.email,
+    password: formData.password,
+    organizacion_nombre: formData.organizacion_id, // Aquí mapeamos el texto libre del input al nombre de la org
+    pais: formData.pais,
+    rol_id: formData.rol_id || "empresas",
+    idioma_preferido: formData.idioma_preferido || "es",
+    estatus_membresia: "activo",
+    es_elegible_para_votar: false,
+    interes_export_import: formData.interes_export_import,
+    interes_comercial: formData.interes_comercial,
+    objetivos_inversion: formData.objetivos_inversion,
+    tipo_conexion_buscada: formData.tipo_conexion_buscada,
+    linkedin: formData.linkedin,
+    temas: formData.temas,
+    acepta_terminos: formData.acepta_terminos // Asegúrate de incluir este booleano en tu estado del form
+  };
+
+  try {
+    // 3. Cambiamos la ruta al endpoint público de FastAPI
+    const response = await fetch("http://localhost:8000/api/v1/auth/registro-completo", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      alert("¡Registro completo exitoso!");
+      // Aquí puedes agregar tu redirección al login o dashboard
+    } else {
+      alert(`Error: ${data.detail}`);
+    }
+  } catch (error) {
+    console.error("Error de red:", error);
+    alert("Ocurrió un error al conectar con el servidor.");
+  }
+};
+
+const handleConfirmTermsAndFinish = async () => {
+  if (!acceptedTerms) return;
+
+  // Payload alineado al InitialSetupRequest de FastAPI
+  const payload = {
+    nombre: formData.nombre,
+    apellido: formData.apellido,
+    email: formData.email,
+    password: formData.password,
+    organizacion_nombre: formData.organizacion_id, // Mapeo del texto libre de la organización
+    pais: formData.pais,
+    rol_id: formData.rol_id || "empresas",
+    idioma_preferido: formData.idioma_preferido || "es",
+    estatus_membresia: "activo",
+    es_elegible_para_votar: false,
+    interes_export_import: formData.interes_export_import,
+    interes_comercial: formData.interes_comercial,
+    objetivos_inversion: formData.objetivos_inversion,
+    tipo_conexion_buscada: formData.tipo_conexion_buscada,
+    linkedin: formData.linkedin,
+    temas: formData.temas,
+    acepta_terminos: true
+  };
+
+  try {
+    const response = await fetch("http://localhost:8000/api/v1/auth/registro-completo", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setShowTermsModal(false);
+      // Aquí puedes cambiar la redirección según tu router (Next.js router.push o window.location)
+      window.location.href = "/login"; 
+    } else {
+      alert(`No se pudo completar el registro: ${data.detail || "Verifica los campos"}`);
+    }
+  } catch (error) {
+    console.error("Error de red en el registro:", error);
+    alert("Ocurrió un error al conectar con el servidor.");
+  }
+};
+
+
   // Validación estricta incluyendo rol_id y organizacion_id
   const isStepValid = () => {
     switch (currentStep) {
@@ -200,20 +301,6 @@ export default function ConfiUser({
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const handleConfirmTermsAndFinish = () => {
-    if (!acceptedTerms) return;
-    setShowTermsModal(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    alert("¡Registro y configuración completados con éxito! Por favor inicia sesión con tu correo corporativo y la contraseña que creaste.");
-
-    localStorage.removeItem('auth_token');
-
-    if (onNavigate) {
-      onNavigate('auth');
     }
   };
 
