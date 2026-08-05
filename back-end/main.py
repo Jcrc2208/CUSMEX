@@ -1,4 +1,5 @@
 import os
+import traceback
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -627,28 +628,41 @@ def obtener_estadisticas_globales(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener estadísticas: {str(e)}")
 
-
 @app.get("/api/v1/reuniones/proximas")
-def obtener_proximas_reuniones(db: Session = Depends(get_db)):
+def obtener_proximas_reuniones(usuario_id: str = None, db: Session = Depends(get_db)):
     try:
-        citas = db.query(CitaB2B).limit(5).all() #filtrado por fecha actual y ordenado por fecha ascendente
+        print(f"--- CONSULTANDO PROXIMAS REUNIONES PARA: {usuario_id} ---")
+        
+        # Consulta básica (puedes adaptarla después para filtrar por usuario_id si lo requieres)
+        query = db.query(CitaB2B)
+        
+        if usuario_id:
+            query = query.filter(
+                (CitaB2B.solicitante_id == usuario_id) | (CitaB2B.destinatario_id == usuario_id)
+            )
+            
+        citas = query.limit(5).all()
 
         if not citas:
-            return[]
+            return []
 
-        return [
-            {
-                "id": c.id,
-                "titulo": c.titulo,
-                "fecha_hora": c.fecha.isoformat(),
-                "lugar": c.lugar,
-               
-            }for c in citas
-        ]
+        resultado = []
+        for c in citas:
+            # Validamos de forma segura cada campo para evitar que un valor nulo rompa el endpoint
+            fecha_formateada = c.fecha.isoformat() if hasattr(c, 'fecha') and c.fecha else None
+            
+            resultado.append({
+                "id": getattr(c, 'id', None),
+                "titulo": getattr(c, 'titulo', 'Reunión B2B'),
+                "fecha_hora": fecha_formateada,
+                "lugar": getattr(c, 'lugar', 'Por definir'),
+            })
+
+        return resultado
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al obtener reuniones: {str(e)}")
-
-
+        # Esto imprimirá el error exacto en tu terminal negra de Python
+        traceback.print_exc()
 
 # --- 4. ENDPOINT: OBTENER PERFILES DE NETWORKING ---
 @app.get("/api/v1/networking/perfiles")
