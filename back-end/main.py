@@ -222,28 +222,58 @@ def actualizar_estatus_cita(cita_id: str, datos: ActualizarEstatusCita):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-# --- 3. ENDPOINT: CREAR CITA B2B (Módulo de Networking) ---
-@app.post("/api/v1/citas_b2b")
-def crear_cita_b2b(cita: CrearCitaB2B):
-    """
-    Inserta un nuevo registro en `citas_b2b` con estatus por defecto 'PENDIENTE DE RESPUESTA'.
-    """
+@app.post("/api/v1/citas_b2b", status_code=201)
+def crear_cita_b2b(cita: CrearCitaB2B, db: Session = Depends(get_db)):
     try:
-        # TODO: Ejecutar el INSERT en MySQL:
-        # INSERT INTO citas_b2b (id, solicitante_id, destinatario_id, proposito_reunion, titulo, mensaje_propuesta, fecha, hora_inicio, hora_fin, estatus)
-        # VALUES (UUID(), :solicitante_id, :destinatario_id, :proposito_reunion, :titulo, :mensaje_propuesta, :fecha, :hora_inicio, :hora_fin, 'PENDIENTE DE RESPUESTA');
+        print("--- DATOS RECIBIDOS PARA CITA B2B ---")
+        print(cita.dict())
+
+        # 1. Validar que los usuarios (solicitante y destinatario) existan realmente en la BD
+        solicitante = db.query(Usuario).filter(Usuario.id == cita.solicitante_id).first()
+        destinatario = db.query(Usuario).filter(Usuario.id == cita.destinatario_id).first()
+
+        if not solicitante or not destinatario:
+            raise HTTPException(
+                status_code=400, 
+                detail="El usuario solicitante o el destinatario no existen en la base de datos."
+            )
+
+        # 2. Inserción real en tu modelo SQLAlchemy (CitaB2B)
+        nueva_cita = CitaB2B(
+            id=str(uuid.uuid4()),
+            solicitante_id=cita.solicitante_id,
+            destinatario_id=cita.destinatario_id,
+            titulo=cita.titulo,
+            proposito_reunion=cita.proposito_reunion,
+            mensaje_propuesta=cita.mensaje_propuesta,
+            fecha=str(cita.fecha),
+            hora_inicio=str(cita.hora_inicio),
+            hora_fin=str(cita.hora_fin),
+            estatus="PENDIENTE DE RESPUESTA"
+        )
         
+        db.add(nueva_cita)
+        db.commit()
+        db.refresh(nueva_cita)
+        
+        print("--- CITA B2B GUARDADA EXITOSAMENTE EN MYSQL ---")
+
         return {
             "status": "success",
-            "mensaje": "Solicitud de cita B2B registrada correctamente en la base de datos",
-            "data": cita
+            "mensaje": "Solicitud de cita B2B registrada correctamente",
+            "data": {
+                "id": nueva_cita.id,
+                "titulo": nueva_cita.titulo,
+                "estatus": nueva_cita.estatus
+            }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        db.rollback()
+        import traceback
+        traceback.print_exc() # Esto imprimirá el error exacto 
+        raise HTTPException(status_code=500, detail=f"Error interno en servidor: {str(e)}")
 
-
-
+    
 @app.post("/api/v1/auth/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     print("--- INTENTO DE LOGIN ---")
@@ -321,6 +351,8 @@ async def chat_with_ai(data: ChatRequest):
         return {"response": completion.choices[0].message.content}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
 
 # 9. Endpoint de Onboarding Inicial conectado a MySQL
 @app.post("/api/v1/setup/initial-onboarding", status_code=201)
@@ -411,6 +443,8 @@ async def voice_assistant(file: UploadFile = File(...), language: str = Form(...
         if os.path.exists(audio_path):
             os.remove(audio_path)
 
+
+
 # ==========================================
 # 11. ENDPOINTS DE ADMINISTRACIÓN (Alta y Baja)
 # ==========================================
@@ -483,6 +517,8 @@ async def admin_crear_usuario(data: AdminCreateUserRequest, db: Session = Depend
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error interno al crear usuario: {str(e)}")
+
+
 @app.post("/api/v1/auth/registro-completo", status_code=201)
 async def registro_completo(data: InitialSetupRequest, db: Session = Depends(get_db)):
     if not data.acepta_terminos:

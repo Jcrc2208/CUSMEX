@@ -15,6 +15,9 @@ export default function Login({
   isDarkMode,
   onToggleTheme,
 }) {
+
+
+
   // Pestaña activa: 'login' (Iniciar sesión) o 'register' (Registrarse)
   const [activeTab, setActiveTab] = useState('login');
   const [isLoading, setIsLoading] = useState(false);
@@ -60,7 +63,7 @@ export default function Login({
 
       const data = await response.json();
 
- if (response.ok) {
+if (response.ok) {
         localStorage.setItem('auth_token', data.token);
         localStorage.setItem('user_role', data.user.role);
         localStorage.setItem('userRole', data.user.role);
@@ -68,6 +71,12 @@ export default function Login({
         
         // Almacenar el perfil del usuario en localStorage para su uso posterior
         localStorage.setItem('user_profile', JSON.stringify(data.user));
+
+        // 🔑 AGREGAR ESTA LÍNEA: Guardar el ID exacto que usa el backend para las relaciones
+        // (Asegúrate de que la propiedad en tu backend sea data.user.id o data.user.usuario_id)
+        if (data.user && data.user.id) {
+          localStorage.setItem('usuario_id', data.user.id);
+        }
 
         console.log('✅ Login exitoso:', data);
         // Redirección al módulo de inicio

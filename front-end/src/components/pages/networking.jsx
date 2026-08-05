@@ -140,18 +140,32 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
     setIsB2BModalOpen(true);
   };
 
-  const handleSubmitB2BRequest = async (e) => {
+
+  
+const handleSubmitB2BRequest = async (e) => {
     e.preventDefault();
     if (!selectedProfileForB2B) return;
 
     try {
+      // Tomamos el ID del usuario actual del localStorage (o uno de respaldo para pruebas)
       const usuarioActualId = localStorage.getItem('usuario_id') || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 
+      // Validar que no intentes agendarte a ti mismo
+      if (usuarioActualId === selectedProfileForB2B.id) {
+        alert('No puedes solicitar una reunión contigo mismo.');
+        return;
+      }
+
+      // Payload adaptado 100% a la clase CrearCitaB2B de tu main.py
       const payload = {
-        usuario_organizador_id: usuarioActualId,
-        usuario_invitado_id: selectedProfileForB2B.id,
-        ...b2bFormData,
-        estatus: 'PENDIENTE'
+        solicitante_id: usuarioActualId,
+        destinatario_id: selectedProfileForB2B.id,
+        titulo: b2bFormData.asunto,                      // Mapea a 'titulo' (String)
+        proposito_reunion: b2bFormData.tema_interes,     // Mapea a 'proposito_reunion' (Text)
+        mensaje_propuesta: b2bFormData.descripcion_agenda, // Mapea a 'mensaje_propuesta' (Text)
+        fecha: b2bFormData.fecha_propuesta,              // Fecha en formato 'YYYY-MM-DD'
+        hora_inicio: b2bFormData.hora_inicio + (b2bFormData.hora_inicio.length === 5 ? ':00' : ''), // Asegurar formato HH:MM:SS
+        hora_fin: b2bFormData.hora_fin + (b2bFormData.hora_fin.length === 5 ? ':00' : '')
       };
 
       const response = await fetch('/api/v1/citas_b2b', {
@@ -160,7 +174,11 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
         body: JSON.stringify(payload)
       });
 
-      if (!response.ok) throw new Error('Error al registrar la cita B2B');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Detalle del error del servidor:", errorData);
+        throw new Error('Error al registrar la cita B2B');
+      }
 
       setRequestedMeetings((prev) => new Set(prev).add(selectedProfileForB2B.id));
       setIsB2BModalOpen(false);
@@ -169,7 +187,7 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
       alert('¡Solicitud de reunión B2B enviada con éxito!');
     } catch (error) {
       console.error("Error al enviar cita B2B:", error);
-      alert('Hubo un error al enviar la solicitud.');
+      alert('Hubo un error al enviar la solicitud. Revisa la consola.');
     }
   };
 
