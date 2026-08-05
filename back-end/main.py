@@ -4,13 +4,14 @@ from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy import Column, String, Text, Boolean, Enum, ForeignKey
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 import bcrypt
 import uuid
 from groq import Groq
 from faster_whisper import WhisperModel
-from typing import List
+from typing import Optional, List
 from database import get_db, engine, Base, SessionLocal
+from datetime import date, time
 
 # 1. Modelos de Base de Datos ajustados al esquema Nexusv2 de MySQL
 class Rol(Base):
@@ -58,6 +59,21 @@ class PerfilNegocio(Base):
     linkedin_url = Column(String(500))
 
     usuario = relationship("Usuario", back_populates="perfil_negocio")
+
+
+# 1. Modelo SQLAlchemy para la tabla citas_b2b ya existente en tu SQL
+class CitaB2B(Base):
+    __tablename__ = "citas_b2b"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    solicitante_id = Column(String(36), ForeignKey('usuarios.id'), nullable=False)
+    destinatario_id = Column(String(36), ForeignKey('usuarios.id'), nullable=False)
+    proposito_reunion = Column(Text, nullable=False)
+    titulo = Column(String(255), nullable=False)
+    mensaje_propuesta = Column(Text)
+    fecha = Column(String(50), nullable=False)
+    hora_inicio = Column(String(50), nullable=False)
+    hora_fin = Column(String(50), nullable=False)
+    estatus = Column(Enum('PENDIENTE DE RESPUESTA', 'CONFIRMADA', 'RECHAZADA', 'CANCELADA'), default='PENDIENTE DE RESPUESTA')
 
 app = FastAPI(title="CUSMEX API - Nexusv2")
 
@@ -120,7 +136,114 @@ class AdminCreateUserRequest(BaseModel):
     estatus_membresia: str = "activo"
     es_elegible_para_votar: bool = False
 
+
+
+class ActualizarEstatusCita(BaseModel):
+   estatus: str = Field(..., description="Debe ser CONFIRMADA, RECHAZADA o CANCELADA")
+   motivo_rechazo: Optional[str] = None
+
+class CrearCitaB2B(BaseModel):
+    solicitante_id: str  # CHAR(36)
+    destinatario_id: str # CHAR(36)
+    titulo: str          # VARCHAR(255)
+    proposito_reunion: str # TEXT
+    mensaje_propuesta: Optional[str] = None
+    fecha: date
+    hora_inicio: time
+    hora_fin: time
+
+
+
+# --- 1. ENDPOINT: OBTENER AGENDA / PRÓXIMAS REUNIONES ---
+@app.get("/api/v1/citas_b2b/usuario/{usuario_id}")
+def obtener_agenda_usuario(usuario_id: str):
+    """
+    Consulta las citas B2B donde el usuario participa (como solicitante o destinatario)
+    y cruza con la tabla de usuarios y organizaciones para pintar la tarjeta de la agenda.
+    """
+    try:
+        # TODO: Aquí va tu consulta SQL real haciendo JOIN:
+        # SELECT c.*, 
+        #        u.nombre AS dest_nombre, u.apellido AS dest_apellido, org.nombre AS dest_empresa, p.linkedin_url
+        # FROM citas_b2b c
+        # JOIN usuarios u ON (c.destinatario_id = u.id OR c.solicitante_id = u.id) AND u.id != :usuario_id
+        # JOIN organizaciones org ON u.organizacion_id = org.id
+        # LEFT JOIN perfiles_negocio p ON u.id = p.usuario_id
+        # WHERE c.solicitante_id = :usuario_id OR c.destinatario_id = :usuario_id
+        
+        citas_mock_ejemplo = [
+            {
+                "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                "solicitante_id": usuario_id,
+                "destinatario_id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380b22",
+                "destinatario_nombre": "Carlos Mendoza",
+                "destinatario_empresa": "Logística y Comercio Global S.A.",
+                "destinatario_puesto": "Director de Operaciones",
+                "destinatario_iniciales": "CM",
+                "destinatario_pais": "México",
+                "titulo": "Apertura de Alianza Comercial CUSMEX",
+                "proposito_reunion": "Alianza Estratégica y Distribución B2B",
+                "mensaje_propuesta": "Buscamos coordinar la red de distribución directa...",
+                "fecha": str(date.today()),
+                "hora_inicio": "09:00:00",
+                "hora_fin": "10:00:00",
+                "estatus": "PENDIENTE DE RESPUESTA",
+                "motivo_rechazo": None
+            }
+        ]
+        return {"status": "success", "data": citas_mock_ejemplo}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- 2. ENDPOINT: ACTUALIZAR ESTATUS DE CITA (Aceptar / Rechazar) ---
+@app.patch("/api/v1/citas_b2b/{cita_id}/estatus")
+def actualizar_estatus_cita(cita_id: str, datos: ActualizarEstatusCita):
+    """
+    Actualiza el ENUM de estatus en la tabla `citas_b2b` 
+    y almacena el `motivo_rechazo` si la rechazan.
+    """
+    estatus_mayus = datos.estatus.upper()
+    validos = ['PENDIENTE DE RESPUESTA', 'CONFIRMADA', 'RECHAZADA', 'CANCELADA']
     
+    if estatus_mayus not in validos:
+        raise HTTPException(status_code=400, detail=f"Estatus inválido. Debe ser uno de: {validos}")
+
+    try:
+        # TODO: Ejecutar el UPDATE en MySQL:
+        # UPDATE citas_b2b SET estatus = :estatus, motivo_rechazo = :motivo WHERE id = :cita_id;
+        
+        return {
+            "status": "success",
+            "mensaje": f"La cita {cita_id} fue actualizada a '{estatus_mayus}'",
+            "estatus_actual": estatus_mayus,
+            "motivo_rechazo": datos.motivo_rechazo
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- 3. ENDPOINT: CREAR CITA B2B (Módulo de Networking) ---
+@app.post("/api/v1/citas_b2b")
+def crear_cita_b2b(cita: CrearCitaB2B):
+    """
+    Inserta un nuevo registro en `citas_b2b` con estatus por defecto 'PENDIENTE DE RESPUESTA'.
+    """
+    try:
+        # TODO: Ejecutar el INSERT en MySQL:
+        # INSERT INTO citas_b2b (id, solicitante_id, destinatario_id, proposito_reunion, titulo, mensaje_propuesta, fecha, hora_inicio, hora_fin, estatus)
+        # VALUES (UUID(), :solicitante_id, :destinatario_id, :proposito_reunion, :titulo, :mensaje_propuesta, :fecha, :hora_inicio, :hora_fin, 'PENDIENTE DE RESPUESTA');
+        
+        return {
+            "status": "success",
+            "mensaje": "Solicitud de cita B2B registrada correctamente en la base de datos",
+            "data": cita
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 @app.post("/api/v1/auth/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     print("--- INTENTO DE LOGIN ---")
@@ -446,3 +569,45 @@ async def registro_completo(data: InitialSetupRequest, db: Session = Depends(get
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error interno al registrar: {str(e)}")
+
+    
+@app.get("/api/v1/usuarios/stats/globales") 
+def obtener_estadisticas_globales(db: Session = Depends(get_db)):
+    try:
+        total_usuarios = db.query(Usuario).count()
+        total_organizaciones = db.query(Organizacion).count()
+        usuarios_activos = db.query(Usuario).filter(Usuario.estatus_membresia == 'activo').count()
+        return {
+            "usuariosRegistrados": total_usuarios,
+            "usuariosActivos": usuarios_activos,
+            "empresas": total_organizaciones,
+            "reunionesB2B": 320,
+            "patrocinadores": 15,
+            "paisesRepresentados": 25,
+            "total_usuarios": total_usuarios,
+            "total_organizaciones": total_organizaciones,
+            
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener estadísticas: {str(e)}")
+
+
+@app.get("/api/v1/reuniones/proximas")
+def obtener_proximas_reuniones(db: Session = Depends(get_db)):
+    try:
+        citas = db.query(CitaB2B).limit(5).all() #filtrado por fecha actual y ordenado por fecha ascendente
+
+        if not citas:
+            return[]
+
+        return [
+            {
+                "id": c.id,
+                "titulo": c.titulo,
+                "fecha_hora": c.fecha.isoformat(),
+                "lugar": c.lugar,
+               
+            }for c in citas
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener reuniones: {str(e)}")

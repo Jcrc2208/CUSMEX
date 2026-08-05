@@ -28,42 +28,6 @@ import {
 import PlatformLayout from '@/components/layout/platform-layout';
 import { navigateToAgenda, navigateToAgendaSession } from '@/config/platform-modules';
 
-const DEFAULT_DAYS = [
-  { id: 'day1', label: 'Día 1' },
-  { id: 'day2', label: 'Día 2' },
-  { id: 'day3', label: 'Día 3' },
-];
-
-const DEFAULT_SESSIONS = [
-  {
-    id: 's1',
-    dia_id: 'day1',
-    // 1. Datos del destinatario
-    destinatario_nombre: 'Carlos Mendoza',
-    destinatario_empresa: 'Logística y Comercio Global S.A.',
-    destinatario_puesto: 'Director de Operaciones',
-    destinatario_iniciales: 'CM',
-    destinatario_pais: 'México',
-    // 2. Propósito o tema de la reunión
-    proposito_reunion: 'Alianza Estratégica y Distribución B2B',
-    // 3. Titulo / Asunto corto
-    titulo: 'Apertura de Alianza Comercial CUSMEX',
-    // 4. Mensaje / Propuesta de valor
-    propuesta_valor: 'Buscamos coordinar la red de distribución directa de productos agroindustriales, reduciendo costos logísticos en un 15% mediante entregas programadas.',
-    // 5. Fecha
-    fecha: 'Mié 19',
-    // 6 y 7. Hora inicio y hora fin
-    hora_inicio: '09:00',
-    hora_fin: '10:00',
-    
-    // Metadatos adicionales de control
-    duracion: '1h',
-    ubicacion: 'Auditorio Principal / Mesa B2B',
-    categoria: 'Reunión B2B',
-    categoria_tone: 'orange',
-    estatus_cita: 'PENDIENTE DE RESPUESTA',
-  },
-];
 
 function SessionCategoryBadge({ label, tone }) {
   const toneClasses = {
@@ -519,24 +483,47 @@ function AgendaDetail({ session, onUpdateStatus }) {
     </main>
   );
 }
-
 export default function Agenda({
   sessionId,
   language,
   onLanguageChange,
   isDarkMode,
   onToggleTheme,
-  sessions = DEFAULT_SESSIONS,
-  days = DEFAULT_DAYS,
 }) {
-  const activeSessions = sessions.length > 0 ? sessions : DEFAULT_SESSIONS;
-  const activeDays = days.length > 0 ? days : DEFAULT_DAYS;
 
-  const [activeDayId, setActiveDayId] = useState(activeDays[0]?.id || 'day1');
+
+  // 1. Estados para guardar las sesiones y los días reales desde tu API
+  const [sessions, setSessions] = useState([]);
+  const [days, setDays] = useState([]); // Los días los puedes dejar fijos o traerlos de config
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 2. useEffect para consumir tu endpoint de FastAPI al montar el componente
+  useEffect(() => {
+    const fetchReuniones = async () => {
+      try {
+        const usuarioActualId = localStorage.getItem('usuario_id') || 1; // Tu ID de usuario
+        
+        const response = await fetch(`/api/v1/reuniones/proximas?usuario_id=${usuarioActualId}`);
+        if (!response.ok) throw new Error('Error al cargar las reuniones');
+        
+        const data = await response.json();
+        setSessions(data); // Inyectas las citas reales de MySQL
+      } catch (error) {
+        console.error("Error conectando con la API:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchReuniones();
+  }, []);
+
+  const activeDayId = days[0]?.id || 'day1';
+  const [currentDayId, setCurrentDayId] = useState(activeDayId);
 
   const selectedSession = useMemo(
-    () => activeSessions.find((s) => String(s.id) === String(sessionId)),
-    [activeSessions, sessionId]
+    () => sessions.find((s) => String(s.id) === String(sessionId)),
+    [sessions, sessionId]
   );
 
   function handleOpenSession(id) {
@@ -544,8 +531,29 @@ export default function Agenda({
     navigateToAgendaSession(id);
   }
 
-  function handleUpdateStatus(id, newStatus, reason = '') {
-    console.log(`Cita ID ${id} actualizada a status ${newStatus} con motivo: "${reason}"`);
+  // 3. Conexión real para actualizar el estatus en tu backend (Aceptar / Rechazar)
+  async function handleUpdateStatus(id, newStatus, reason = '') {
+    try {
+      const response = await fetch(`/api/v1/citas_b2b/${id}/estatus`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estatus_cita: newStatus, motivo_rechazo: reason })
+      });
+
+      if (!response.ok) throw new Error('No se pudo actualizar la cita');
+
+      // Actualizamos el estado local para que refleje el cambio al instante sin recargar
+      setSessions((prevSessions) =>
+        prevSessions.map((session) =>
+          session.id === id ? { ...session, estatus_cita: newStatus } : session
+        )
+      );
+
+      console.log(`Cita ID ${id} actualizada a status ${newStatus}`);
+    } catch (error) {
+      console.error("Error al actualizar estatus:", error);
+      alert("Hubo un error al actualizar la cita en el servidor.");
+    }
   }
 
   return (
@@ -565,10 +573,10 @@ export default function Agenda({
         />
       ) : (
         <AgendaList
-          sessions={activeSessions}
-          days={activeDays}
-          activeDayId={activeDayId}
-          onDayChange={setActiveDayId}
+          sessions={sessions}
+          days={days}
+          activeDayId={currentDayId}
+          onDayChange={setCurrentDayId}
           onOpenSession={handleOpenSession}
         />
       )}

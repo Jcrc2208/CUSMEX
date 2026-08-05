@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowRight,
   Building2,
@@ -27,31 +27,65 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
     estatusMembresia: userProfile?.estatus_membresia === 'activo' ? 'Activa' : (userProfile?.estatusMembresia || 'Activa'),
   };
 
-  // 2. Estadísticas Globales de la Plataforma
-  const estadisticas = {
-    usuariosRegistrados: 1250,
-    usuariosActivos: 840,
-    empresas: 180,
-    patrocinadores: 24,
-    paisesRepresentados: 12,
-    reunionesB2B: 320,
-  };
+  // 2. Estadísticas Globales dinámicas (con valores iniciales en 0 o un respaldo)
+  const [estadisticas, setEstadisticas] = useState({
+    usuariosRegistrados: 0,
+    usuariosActivos: 0,
+    empresas: 0,
+    patrocinadores: 0,
+    paisesRepresentados: 0,
+    reunionesB2B: 0,
+  });
 
-  // 3. Próximas Reuniones
-  const reuniones = [
-    {
-      id: 'r1',
-      titulo: 'Mesa Técnica: Cadena de Suministro y Nearshoring',
-      fecha_hora: 'Hoy · 11:30 - 12:30 AM',
-      lugar: 'Sala Pacífico',
-    },
-    {
-      id: 'r2',
-      titulo: 'Asamblea General Ordinaria CUSMEX',
-      fecha_hora: 'Mañana · 09:00 - 10:30 AM',
-      lugar: 'Auditorio Principal',
-    },
-  ];
+  // 3. Consultar la API en tiempo real al montar el componente
+  useEffect(() => {
+    async function fetchEstadisticasGlobales() {
+      try {
+        const response = await fetch('/api/v1/usuarios/stats/globales');
+        if (response.ok) {
+          const data = await response.json();
+          setEstadisticas(data);
+        }
+      } catch (error) {
+        console.error('Error al sincronizar las estadísticas globales:', error);
+      }
+    }
+
+    fetchEstadisticasGlobales();
+  }, []);
+
+
+// 3. Estado dinámico para Próximas Reuniones conectadas a la BD
+  const [reuniones, setReuniones] = useState([]);
+
+  // 4. Consultar las citas B2B en tiempo real al montar el componente
+  useEffect(() => {
+    async function fetchReuniones() {
+      try {
+        const response = await fetch('/api/v1/reuniones/proximas');
+        if (response.ok) {
+          const data = await response.json();
+          // Si la base de datos tiene citas, las usa; si viene vacío, muestra el respaldo de diseño
+          if (data && data.length > 0) {
+            setReuniones(data);
+          } else {
+            setReuniones([
+              {
+                id: 'r1',
+                titulo: 'Mesa Técnica: Cadena de Suministro y Nearshoring',
+                fecha_hora: 'Hoy · 11:30 - 12:30 AM',
+                lugar: 'Sala Pacífico',
+              },
+            ]);
+          }
+        }
+      } catch (error) {
+        console.error('Error al sincronizar las reuniones:', error);
+      }
+    }
+
+    fetchReuniones();
+  }, []);
 
   return (
     <PlatformLayout
