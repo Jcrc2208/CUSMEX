@@ -21,13 +21,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
 import PlatformLayout from '@/components/layout/platform-layout';
-import { NETWORKING_PROFILES } from '@/data/networking-data';
+// NOTA: Ya no necesitamos importar NETWORKING_PROFILES de archivos estáticos
 
 export default function Networking({ language, onLanguageChange, isDarkMode, onToggleTheme }) {
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [activeTab, setActiveTab] = useState('ai'); // 'ai' | 'search'
   const [requestedMeetings, setRequestedMeetings] = useState(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Estado dinámico para los perfiles que vienen de FastAPI
+  const [NETWORKING_PROFILES, setNetworkingProfiles] = useState([]);
   
   // Modal de Filtros
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -86,6 +89,21 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
     return count;
   }, [filterOffering, filterLookingFor, filterOrganization, filterRole, filterCountry, filterLanguage]);
 
+  // Cargar perfiles desde FastAPI al iniciar el componente
+  useEffect(() => {
+    const fetchNetworkingProfiles = async () => {
+      try {
+        const response = await fetch('/api/v1/networking/perfiles');
+        if (!response.ok) throw new Error('Error al obtener perfiles de networking');
+        const result = await response.json();
+        setNetworkingProfiles(result.data || []);
+      } catch (error) {
+        console.error("Error cargando red:", error);
+      }
+    };
+    fetchNetworkingProfiles();
+  }, []);
+
   // Efecto para regresar al inicio de la página al cambiar vistas
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -122,13 +140,37 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
     setIsB2BModalOpen(true);
   };
 
-  const handleSubmitB2BRequest = (e) => {
+  const handleSubmitB2BRequest = async (e) => {
     e.preventDefault();
     if (!selectedProfileForB2B) return;
 
-    setRequestedMeetings((prev) => new Set(prev).add(selectedProfileForB2B.id));
-    setIsB2BModalOpen(false);
-    setSelectedProfileForB2B(null);
+    try {
+      const usuarioActualId = localStorage.getItem('usuario_id') || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+
+      const payload = {
+        usuario_organizador_id: usuarioActualId,
+        usuario_invitado_id: selectedProfileForB2B.id,
+        ...b2bFormData,
+        estatus: 'PENDIENTE'
+      };
+
+      const response = await fetch('/api/v1/citas_b2b', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error('Error al registrar la cita B2B');
+
+      setRequestedMeetings((prev) => new Set(prev).add(selectedProfileForB2B.id));
+      setIsB2BModalOpen(false);
+      setSelectedProfileForB2B(null);
+      
+      alert('¡Solicitud de reunión B2B enviada con éxito!');
+    } catch (error) {
+      console.error("Error al enviar cita B2B:", error);
+      alert('Hubo un error al enviar la solicitud.');
+    }
   };
 
   // Filtrado dinámico para la pestaña de Búsqueda Libre
@@ -151,7 +193,7 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
 
       return matchesQuery && matchesOffering && matchesLookingFor && matchesOrganization && matchesRole && matchesCountry && matchesLanguage;
     });
-  }, [searchQuery, filterOffering, filterLookingFor, filterOrganization, filterRole, filterCountry, filterLanguage]);
+  }, [NETWORKING_PROFILES, searchQuery, filterOffering, filterLookingFor, filterOrganization, filterRole, filterCountry, filterLanguage]);
 
   const clearFilters = () => {
     setFilterOffering('');
@@ -172,6 +214,7 @@ export default function Networking({ language, onLanguageChange, isDarkMode, onT
     }
     return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30';
   };
+
 
   // Renderizado dinámico de tarjetas
   const renderProfileCard = (profile) => {

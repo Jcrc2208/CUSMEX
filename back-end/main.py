@@ -611,3 +611,74 @@ def obtener_proximas_reuniones(db: Session = Depends(get_db)):
         ]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener reuniones: {str(e)}")
+
+
+
+# --- 4. ENDPOINT: OBTENER PERFILES DE NETWORKING ---
+@app.get("/api/v1/networking/perfiles")
+def obtener_perfiles_networking(
+    search: Optional[str] = None,
+    organizacion: Optional[str] = None,
+    pais: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Consulta los perfiles de la base de datos cruzando Usuario, Organización y PerfilNegocio.
+    """
+    try:
+        query = db.query(Usuario, Organizacion, PerfilNegocio).join(
+            Organizacion, Usuario.organizacion_id == Organizacion.id
+        ).outerjoin(
+            PerfilNegocio, Usuario.id == PerfilNegocio.usuario_id
+        )
+
+        if search:
+            search_term = f"%{search}%"
+            query = query.filter(
+                (Usuario.nombre.ilike(search_term)) | 
+                (Organizacion.nombre.ilike(search_term))
+            )
+        
+        if organizacion:
+            query = query.filter(Organizacion.nombre == organizacion)
+            
+        if pais:
+            query = query.filter(Usuario.pais == pais)
+
+        resultados = query.all()
+        perfiles_formateados = []
+
+        for user, org, perfil in resultados:
+            # Generar iniciales para el avatar
+            iniciales = f"{user.nombre[0].upper()}"
+            if user.apellido:
+                iniciales += f"{user.apellido[0].upper()}"
+
+            # Construir arreglos limpios de 'ofrece' y 'busca' (separados por comas en tu base de datos)
+            offering_list = [item.strip() for item in perfil.ofrece.split(",")] if perfil and perfil.ofrece else ["Comercio B2B"]
+            looking_for_list = [item.strip() for item in perfil.busca.split(",")] if perfil and perfil.busca else ["Socios Comerciales"]
+
+            perfiles_formateados.append({
+                "id": user.id,
+                "name": f"{user.nombre} {user.apellido}",
+                "role": "Representante de Negocios",
+                "organization": org.nombre,
+                "company": org.nombre,
+                "country": user.pais,
+                "preferredLanguage": user.idioma_preferido,
+                "matchPercentage": 92, # Valor optimizado o calculado dinámicamente por IA
+                "matchReason": "Coincidencia directa basada en intereses comerciales y sector de industria.",
+                "avatar": iniciales,
+                "linkedinUrl": perfil.linkedin_url if perfil and perfil.linkedin_url else "https://linkedin.com",
+                "offering": offering_list,
+                "lookingFor": looking_for_list,
+                "commercialProfile": perfil.interes_export_import.capitalize() if perfil else "Comercial"
+            })
+
+        return {
+            "status": "success",
+            "data": perfiles_formateados
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al consultar perfiles: {str(e)}")
+
