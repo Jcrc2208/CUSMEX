@@ -1,0 +1,11 @@
+//bug que se encuentran en el software 
+
+
+si la reunion no es hacia tu perfil no te tendría que aparecer en las próximas reuniones ya que contigo no se hizo el match,
+es decir se muestran en el panel de inicio pero al momento de abrir ahi no salen  entonces es posiblemente un error en la ventana inicio ……….
+
+
+el segundo bug que se encontró fue que al momento de hacer match en el apartado de networking no debería de aparecer de nuevo tu perfil porque no tiene lógica que el match lo haga con tu mismo perfil ……….
+
+
+se debe de añadir un botón de notificaciones para validar la agenda de reuniones y match que se hace con distintos perfiles
