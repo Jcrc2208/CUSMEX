@@ -126,6 +126,7 @@ function AgendaList({
   onDayChange,
   onOpenSession,
 }) {
+
   const safeSessions = Array.isArray(sessions) ? sessions : [];
   const safeDays = Array.isArray(days) ? days : [];
 
@@ -184,6 +185,7 @@ function AgendaList({
             Utiliza Match para crear conexiones estratégicas y gestionar reuniones con otros usuarios.
           </div>
         )}
+        
         {grouped.map(([time, sessionsList]) => (
           <section key={time} className="grid grid-cols-1 gap-4 md:grid-cols-[80px_1fr]">
             <div className="text-sm font-semibold text-muted-foreground md:pt-2">{time}</div>
@@ -483,6 +485,7 @@ function AgendaDetail({ session, onUpdateStatus }) {
     </main>
   );
 }
+
 export default function Agenda({
   sessionId,
   language,
@@ -494,8 +497,16 @@ export default function Agenda({
 
   // 1. Estados para guardar las sesiones y los días reales desde tu API
   const [sessions, setSessions] = useState([]);
-  const [days, setDays] = useState([]); // Los días los puedes dejar fijos o traerlos de config
   const [isLoading, setIsLoading] = useState(true);
+  // 1. Inicializamos los días con el formato exacto que espera el backend ("day-1")
+  const [days, setDays] = useState([
+    { id: 'day-1', label: 'Día 1' },
+    { id: 'day-2', label: 'Día 2' }
+  ]);
+  
+
+
+
 
   // 2. useEffect para consumir tu endpoint de FastAPI al montar el componente
   useEffect(() => {
@@ -518,7 +529,8 @@ export default function Agenda({
     fetchReuniones();
   }, []);
 
-  const activeDayId = days[0]?.id || 'day1';
+  // 2. Blindamos el ID activo con el guion correspondiente
+  const activeDayId = days[0]?.id || 'day-1';
   const [currentDayId, setCurrentDayId] = useState(activeDayId);
 
   const selectedSession = useMemo(

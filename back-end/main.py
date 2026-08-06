@@ -223,6 +223,8 @@ def actualizar_estatus_cita(cita_id: str, datos: ActualizarEstatusCita):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
 @app.post("/api/v1/citas_b2b", status_code=201)
 def crear_cita_b2b(cita: CrearCitaB2B, db: Session = Depends(get_db)):
     try:
@@ -627,13 +629,11 @@ def obtener_estadisticas_globales(db: Session = Depends(get_db)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener estadísticas: {str(e)}")
-
 @app.get("/api/v1/reuniones/proximas")
 def obtener_proximas_reuniones(usuario_id: str = None, db: Session = Depends(get_db)):
     try:
         print(f"--- CONSULTANDO PROXIMAS REUNIONES PARA: {usuario_id} ---")
         
-        # Consulta básica (puedes adaptarla después para filtrar por usuario_id si lo requieres)
         query = db.query(CitaB2B)
         
         if usuario_id:
@@ -646,9 +646,20 @@ def obtener_proximas_reuniones(usuario_id: str = None, db: Session = Depends(get
         if not citas:
             return []
 
+        # Función auxiliar para convertir los segundos a formato "HH:MM" para React
+        def segundos_a_hora(segundos):
+            if not segundos:
+                return "09:00"
+            try:
+                s = float(segundos)
+                horas = int(s // 3600)
+                minutos = int((s % 3600) // 60)
+                return f"{horas:02d}:{minutos:02d}"
+            except Exception:
+                return "09:00"
+
         resultado = []
         for c in citas:
-            # Validamos de forma segura cada campo para evitar que un valor nulo rompa el endpoint
             fecha_formateada = c.fecha.isoformat() if hasattr(c, 'fecha') and c.fecha else None
             
             resultado.append({
@@ -656,14 +667,23 @@ def obtener_proximas_reuniones(usuario_id: str = None, db: Session = Depends(get
                 "titulo": getattr(c, 'titulo', 'Reunión B2B'),
                 "fecha_hora": fecha_formateada,
                 "lugar": getattr(c, 'lugar', 'Por definir'),
+                "dia_id": getattr(c, 'dia_id', 'day-1'),
+                # ¡Aquí está la magia convertida a texto legible!
+                "hora_inicio": segundos_a_hora(getattr(c, 'hora_inicio', 32400)),
+                "hora_fin": segundos_a_hora(getattr(c, 'hora_fin', 36000)),
+                "estatus_cita": getattr(c, 'estatus', 'PENDIENTE DE RESPUESTA'),
+                "categoria": getattr(c, 'categoria', 'General'),
+                "destinatario_nombre": getattr(c, 'destinatario_nombre', 'Conexión Estratégica'),
             })
 
         return resultado
 
     except Exception as e:
-        # Esto imprimirá el error exacto en tu terminal negra de Python
         traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
+
+    
 # --- 4. ENDPOINT: OBTENER PERFILES DE NETWORKING ---
 @app.get("/api/v1/networking/perfiles")
 def obtener_perfiles_networking(
