@@ -14,6 +14,9 @@ from typing import Optional, List
 from database import get_db, engine, Base, SessionLocal
 from datetime import date, time
 
+
+
+
 # 1. Modelos de Base de Datos ajustados al esquema Nexusv2 de MySQL
 class Rol(Base):
     __tablename__ = "roles"
@@ -197,33 +200,6 @@ def obtener_agenda_usuario(usuario_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# --- 2. ENDPOINT: ACTUALIZAR ESTATUS DE CITA (Aceptar / Rechazar) ---
-@app.patch("/api/v1/citas_b2b/{cita_id}/estatus")
-def actualizar_estatus_cita(cita_id: str, datos: ActualizarEstatusCita):
-    """
-    Actualiza el ENUM de estatus en la tabla `citas_b2b` 
-    y almacena el `motivo_rechazo` si la rechazan.
-    """
-    estatus_mayus = datos.estatus.upper()
-    validos = ['PENDIENTE DE RESPUESTA', 'CONFIRMADA', 'RECHAZADA', 'CANCELADA']
-    
-    if estatus_mayus not in validos:
-        raise HTTPException(status_code=400, detail=f"Estatus inválido. Debe ser uno de: {validos}")
-
-    try:
-        # TODO: Ejecutar el UPDATE en MySQL:
-        # UPDATE citas_b2b SET estatus = :estatus, motivo_rechazo = :motivo WHERE id = :cita_id;
-        
-        return {
-            "status": "success",
-            "mensaje": f"La cita {cita_id} fue actualizada a '{estatus_mayus}'",
-            "estatus_actual": estatus_mayus,
-            "motivo_rechazo": datos.motivo_rechazo
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 
 @app.post("/api/v1/citas_b2b", status_code=201)
 def crear_cita_b2b(cita: CrearCitaB2B, db: Session = Depends(get_db)):
@@ -276,7 +252,42 @@ def crear_cita_b2b(cita: CrearCitaB2B, db: Session = Depends(get_db)):
         traceback.print_exc() # Esto imprimirá el error exacto 
         raise HTTPException(status_code=500, detail=f"Error interno en servidor: {str(e)}")
 
-    
+
+class ActualizarEstatusCita(BaseModel):
+    estatus_cita: str
+    motivo_rechazo: Optional[str] = ""
+
+@app.patch("/api/v1/citas_b2b/{cita_id}/estatus")
+def actualizar_estatus_cita_b2b(cita_id: str, payload: ActualizarEstatusCita, db: Session = Depends(get_db)):
+    try:
+        print("--- PAYLOAD RECIBIDO ---")
+        print(payload.dict())
+
+        cita = db.query(CitaB2B).filter(CitaB2B.id == cita_id).first()
+        if not cita:
+            raise HTTPException(status_code=404, detail="Cita B2B no encontrada.")
+
+        # Usamos directamente el campo que manda React
+        cita.estatus = payload.estatus_cita
+        db.commit()
+        db.refresh(cita)
+
+        return {
+            "status": "success",
+            "mensaje": "Estatus actualizado con éxito",
+            "data": {
+                "id": cita.id, 
+                "estatus": cita.estatus
+            }
+        }
+    except Exception as e:
+        db.rollback()
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+
 @app.post("/api/v1/auth/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     print("--- INTENTO DE LOGIN ---")
@@ -629,6 +640,8 @@ def obtener_estadisticas_globales(db: Session = Depends(get_db)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener estadísticas: {str(e)}")
+
+    
 @app.get("/api/v1/reuniones/proximas")
 def obtener_proximas_reuniones(usuario_id: str = None, db: Session = Depends(get_db)):
     try:
