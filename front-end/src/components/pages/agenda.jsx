@@ -70,6 +70,21 @@ function StatusBadge({ status }) {
   );
 }
 
+function buildGoogleCalendarUrl(session) {
+  const title = encodeURIComponent(session.titulo || 'Cita B2B');
+  const details = encodeURIComponent(
+    `Propósito: ${session.proposito_reunion || ''}\nPropuesta: ${session.propuesta_valor || ''}`
+  );
+  const location = encodeURIComponent(session.ubicacion || 'Remoto / Mesa B2B');
+
+  const now = new Date();
+  const startIso = now.toISOString().replace(/-|:|\.\d+/g, '');
+  const endDate = new Date(now.getTime() + 60 * 60 * 1000);
+  const endIso = endDate.toISOString().replace(/-|:|\.\d+/g, '');
+
+  return `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${startIso}/${endIso}`;
+}
+
 function SessionCard({ session, onOpen }) {
   if (!session) return null;
 
@@ -119,12 +134,87 @@ function SessionCard({ session, onOpen }) {
   );
 }
 
+function MisReunionesCard({ session, onOpen }) {
+  if (!session) return null;
+
+  return (
+    <Card
+      className="cursor-pointer transition-all hover:ring-2 hover:ring-ring/50 focus-within:ring-2 focus-within:ring-ring min-h-[160px] flex flex-col justify-between w-full"
+      onClick={() => onOpen?.(session.id)}
+    >
+      <CardHeader className="p-4 pb-2 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="truncate">
+            <SessionCategoryBadge
+              label={session.categoria || 'General'}
+              tone={session.categoria_tone || 'blue'}
+            />
+          </div>
+          <StatusBadge status={session.estatus_cita} />
+        </div>
+
+        <CardTitle className="text-base leading-snug line-clamp-2 break-words">
+          {session.titulo || 'Sin título'}
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent className="flex flex-col gap-3 p-4 pt-0">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 shrink-0">
+            <Clock3 className="h-3.5 w-3.5" />
+            {session.hora_inicio || '--:--'} – {session.hora_fin || '--:--'}
+          </span>
+          <span className="flex items-center gap-1 shrink-0">
+            <CalendarDays className="h-3.5 w-3.5" />
+            {session.fecha || 'Por definir'}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground uppercase">
+            {session.destinatario_iniciales || <User className="h-3.5 w-3.5" />}
+          </div>
+          <span className="text-xs font-medium text-foreground truncate">
+            {session.destinatario_nombre || 'Destinatario no especificado'}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 pt-2">
+          <Button
+            type="button"
+            size="sm"
+            className="flex-1 rounded-xl bg-primary text-primary-foreground font-semibold"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(buildGoogleCalendarUrl(session), '_blank');
+            }}
+          >
+            <CalendarPlus className="h-4 w-4 mr-2" />
+            Agregar a Google Calendar
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function AgendaList({
-  sessions = [],
+  solicitudes = [],
+  misReuniones = [],
+  activeTab,
+  onTabChange,
   onOpenSession,
 }) {
 
-  const safeSessions = Array.isArray(sessions) ? sessions : [];
+  const safeSolicitudes = Array.isArray(solicitudes) ? solicitudes : [];
+  const safeMisReuniones = Array.isArray(misReuniones) ? misReuniones : [];
+
+  const tabs = [
+    { key: 'solicitudes', label: 'Solicitudes' },
+    { key: 'mis-reuniones', label: 'Mis Reuniones' },
+  ];
+
+  const sessions = activeTab === 'mis-reuniones' ? safeMisReuniones : safeSolicitudes;
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
@@ -136,21 +226,48 @@ function AgendaList({
         </div>
       </header>
 
+      <div className="flex items-center gap-1 rounded-xl border border-border bg-card p-1 w-fit">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => onTabChange?.(tab.key)}
+            className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors ${
+              activeTab === tab.key
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-6 pt-2">
-        {safeSessions.length === 0 && (
+        {sessions.length === 0 && (
           <div className="py-12 text-center text-sm text-muted-foreground">
-            Utiliza Match para crear conexiones estratégicas y gestionar reuniones con otros usuarios.
+            {activeTab === 'mis-reuniones'
+              ? 'Aún no has solicitado ninguna reunión.'
+              : 'Utiliza Match para crear conexiones estratégicas y gestionar reuniones con otros usuarios.'}
           </div>
         )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {safeSessions.map((session) => (
-            <SessionCard
-              key={session.id}
-              session={session}
-              onOpen={onOpenSession}
-            />
-          ))}
+          {sessions.map((session) =>
+            activeTab === 'mis-reuniones' ? (
+              <MisReunionesCard
+                key={session.id}
+                session={session}
+                onOpen={onOpenSession}
+              />
+            ) : (
+              <SessionCard
+                key={session.id}
+                session={session}
+                onOpen={onOpenSession}
+              />
+            )
+          )}
         </div>
       </div>
     </main>
@@ -160,7 +277,7 @@ function AgendaList({
 /* ========================================================================
    AGENDA DETAIL (RESPUESTA DE SOLICITUD Y CANCELACIÓN DE CITA B2B)
    ======================================================================== */
-function AgendaDetail({ session, onUpdateStatus }) {
+function AgendaDetail({ session, isMyRequest = false, onUpdateStatus }) {
   const [currentStatus, setCurrentStatus] = useState(
     session?.estatus_cita || 'PENDIENTE DE RESPUESTA'
   );
@@ -319,7 +436,7 @@ function AgendaDetail({ session, onUpdateStatus }) {
 
         {/* ACCIONES DE ACEPTACIÓN / RECHAZO / GOOGLE CALENDAR */}
         <div className="space-y-4 pt-4 border-t border-border">
-          {currentStatus === 'PENDIENTE DE RESPUESTA' && (
+          {!isMyRequest && currentStatus === 'PENDIENTE DE RESPUESTA' && (
             <div className="flex flex-wrap items-center gap-3">
               <Button
                 type="button"
@@ -343,7 +460,7 @@ function AgendaDetail({ session, onUpdateStatus }) {
           )}
 
           {/* PANEL RECHAZO (FORMULARIO MOTIVO) */}
-          {showRejectPanel && (
+          {!isMyRequest && showRejectPanel && (
             <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/5 space-y-3 animate-in fade-in-0 duration-200">
               <div className="flex items-center gap-2 text-destructive font-bold text-sm">
                 <MessageSquare className="h-4 w-4" />
@@ -378,8 +495,8 @@ function AgendaDetail({ session, onUpdateStatus }) {
             </div>
           )}
 
-          {/* SI FUE ACEPTADA: HABILITA GOOGLE CALENDAR */}
-          {currentStatus === 'CONFIRMADA' && (
+          {/* SI FUE ACEPTADA (o es mis reuniones): HABILITA GOOGLE CALENDAR */}
+          {(currentStatus === 'CONFIRMADA' || isMyRequest) && (
             <div className="flex flex-wrap items-center gap-3">
               <Button
                 type="button"
@@ -448,9 +565,10 @@ export default function Agenda({
 
 
   // 1. Estados para guardar las sesiones reales desde tu API
-  const [sessions, setSessions] = useState([]);
+  const [solicitudes, setSolicitudes] = useState([]);
+  const [misReuniones, setMisReuniones] = useState([]);
+  const [activeTab, setActiveTab] = useState('solicitudes');
   const [isLoading, setIsLoading] = useState(true);
-
 
 
 
@@ -460,12 +578,20 @@ export default function Agenda({
     const fetchReuniones = async () => {
       try {
         const usuarioActualId = localStorage.getItem('usuario_id') || 1; // Tu ID de usuario
-        
-        const response = await fetch(`/api/v1/reuniones/proximas?usuario_id=${usuarioActualId}`);
-        if (!response.ok) throw new Error('Error al cargar las reuniones');
-        
-        const data = await response.json();
-        setSessions(data); // Inyectas las citas reales de MySQL
+
+        const [solResponse, misResponse] = await Promise.all([
+          fetch(`/api/v1/reuniones/proximas?usuario_id=${usuarioActualId}&tipo=destinatario`),
+          fetch(`/api/v1/reuniones/proximas?usuario_id=${usuarioActualId}&tipo=solicitante`),
+        ]);
+
+        if (!solResponse.ok) throw new Error('Error al cargar las solicitudes');
+        if (!misResponse.ok) throw new Error('Error al cargar las reuniones');
+
+        const solData = await solResponse.json();
+        const misData = await misResponse.json();
+
+        setSolicitudes(solData); // Citas que nos llegan (somos destinatario)
+        setMisReuniones(misData); // Citas que solicitamos (somos solicitante)
       } catch (error) {
         console.error("Error conectando con la API:", error);
       } finally {
@@ -476,9 +602,16 @@ export default function Agenda({
     fetchReuniones();
   }, []);
 
+  const allSessions = useMemo(() => [...solicitudes, ...misReuniones], [solicitudes, misReuniones]);
+
   const selectedSession = useMemo(
-    () => sessions.find((s) => String(s.id) === String(sessionId)),
-    [sessions, sessionId]
+    () => allSessions.find((s) => String(s.id) === String(sessionId)),
+    [allSessions, sessionId]
+  );
+
+  const isMyRequest = useMemo(
+    () => misReuniones.some((s) => String(s.id) === String(sessionId)),
+    [misReuniones, sessionId]
   );
 
   function handleOpenSession(id) {
@@ -498,7 +631,7 @@ export default function Agenda({
       if (!response.ok) throw new Error('No se pudo actualizar la cita');
 
       // Actualizamos el estado local para que refleje el cambio al instante sin recargar
-      setSessions((prevSessions) =>
+      setSolicitudes((prevSessions) =>
         prevSessions.map((session) =>
           session.id === id ? { ...session, estatus_cita: newStatus } : session
         )
@@ -524,11 +657,15 @@ export default function Agenda({
       {sessionId ? (
         <AgendaDetail
           session={selectedSession}
+          isMyRequest={isMyRequest}
           onUpdateStatus={handleUpdateStatus}
         />
       ) : (
         <AgendaList
-          sessions={sessions}
+          solicitudes={solicitudes}
+          misReuniones={misReuniones}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
           onOpenSession={handleOpenSession}
         />
       )}

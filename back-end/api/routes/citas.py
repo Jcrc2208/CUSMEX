@@ -97,19 +97,32 @@ def actualizar_estatus_cita_b2b(cita_id: str, payload: ActualizarEstatusCita, db
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 @router.get("/reuniones/proximas")
-def obtener_proximas_reuniones(usuario_id: str = None, db: Session = Depends(get_db)):
+def obtener_proximas_reuniones(usuario_id: str = None, tipo: str = "destinatario", db: Session = Depends(get_db)):
     try:
         if not usuario_id or not str(usuario_id).strip():
             return []
 
-        query = (
-            db.query(CitaB2B, Usuario, Organizacion, Rol)
-            .join(Usuario, CitaB2B.solicitante_id == Usuario.id)
-            .join(Organizacion, Usuario.organizacion_id == Organizacion.id)
-            .outerjoin(Rol, Usuario.rol_id == Rol.id)
-            .filter(CitaB2B.destinatario_id == usuario_id)
-            .order_by(CitaB2B.created_at.desc())
-        )
+        es_solicitante = str(tipo).lower() == "solicitante"
+
+        # tipo="solicitante"  => MIS REUNIONES (citas que nosotros pedimos, muestra al destinatario)
+        # tipo="destinatario" => SOLICITUDES (citas que nos piden, muestra al solicitante)
+        if es_solicitante:
+            query = (
+                db.query(CitaB2B, Usuario, Organizacion, Rol)
+                .join(Usuario, CitaB2B.destinatario_id == Usuario.id)
+                .join(Organizacion, Usuario.organizacion_id == Organizacion.id)
+                .outerjoin(Rol, Usuario.rol_id == Rol.id)
+                .filter(CitaB2B.solicitante_id == usuario_id)
+            )
+        else:
+            query = (
+                db.query(CitaB2B, Usuario, Organizacion, Rol)
+                .join(Usuario, CitaB2B.solicitante_id == Usuario.id)
+                .join(Organizacion, Usuario.organizacion_id == Organizacion.id)
+                .outerjoin(Rol, Usuario.rol_id == Rol.id)
+                .filter(CitaB2B.destinatario_id == usuario_id)
+            )
+        query = query.order_by(CitaB2B.created_at.desc())
         filas = query.limit(5).all()
         if not filas:
             return []
@@ -132,6 +145,7 @@ def obtener_proximas_reuniones(usuario_id: str = None, db: Session = Depends(get
                 "id": c.id, "titulo": c.titulo, "proposito_reunion": c.proposito_reunion,
                 "propuesta_valor": c.mensaje_propuesta, "fecha": fecha_formateada, "fecha_hora": fecha_formateada,
                 "hora_inicio": formato_hora(c.hora_inicio), "hora_fin": formato_hora(c.hora_fin),
+                "solicitante_id": c.solicitante_id, "destinatario_id": c.destinatario_id,
                 "estatus_cita": c.estatus, "destinatario_nombre": nombre_solicitante,
                 "destinatario_iniciales": iniciales, "destinatario_empresa": org.nombre if org else 'Por definir',
                 "destinatario_puesto": rol.nombre if rol else 'Representante', "destinatario_pais": solicitante.pais or '',
