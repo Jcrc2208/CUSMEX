@@ -284,7 +284,7 @@ function AgendaDetail({ session, onUpdateStatus }) {
         {/*DATOS DEL DESTINATARIO */}
         <div className="space-y-3">
           <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-            <User className="h-3.5 w-3.5 text-primary" /> Datos del Destinatario
+            <User className="h-3.5 w-3.5 text-primary" /> Datos de la Persona Interesada
           </h2>
 
           <div className="rounded-xl border border-border p-4 sm:p-5 bg-background">

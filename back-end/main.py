@@ -650,41 +650,60 @@ def obtener_proximas_reuniones(usuario_id: str = None, db: Session = Depends(get
         if not usuario_id or not str(usuario_id).strip():
             return []
 
-        query = db.query(CitaB2B).filter(CitaB2B.destinatario_id == usuario_id)
-            
-        citas = query.limit(5).all()
+        # Traemos la cita junto con los datos del SOLICITANTE (la persona interesada)
+        query = (
+            db.query(CitaB2B, Usuario, Organizacion, Rol)
+            .join(Usuario, CitaB2B.solicitante_id == Usuario.id)
+            .join(Organizacion, Usuario.organizacion_id == Organizacion.id)
+            .outerjoin(Rol, Usuario.rol_id == Rol.id)
+            .filter(CitaB2B.destinatario_id == usuario_id)
+        )
 
-        if not citas:
+        filas = query.limit(5).all()
+
+        if not filas:
             return []
 
-        # Función auxiliar para convertir los segundos a formato "HH:MM" para React
-        def segundos_a_hora(segundos):
-            if not segundos:
+        # Convierte "09:00:00" o "09:00" al formato "HH:MM" para React
+        def formato_hora(valor):
+            if not valor:
                 return "09:00"
             try:
-                s = float(segundos)
-                horas = int(s // 3600)
-                minutos = int((s % 3600) // 60)
-                return f"{horas:02d}:{minutos:02d}"
+                partes = str(valor).split(":")
+                if len(partes) >= 2:
+                    return f"{int(partes[0]):02d}:{int(partes[1]):02d}"
             except Exception:
-                return "09:00"
+                pass
+            return "09:00"
 
         resultado = []
-        for c in citas:
+        for c, solicitante, org, rol in filas:
             fecha_formateada = c.fecha.isoformat() if hasattr(c, 'fecha') and c.fecha else None
-            
+            nombre_solicitante = f"{solicitante.nombre} {solicitante.apellido}".strip()
+            iniciales = ""
+            if solicitante.nombre:
+                iniciales += solicitante.nombre[0].upper()
+            if solicitante.apellido:
+                iniciales += solicitante.apellido[0].upper()
+
             resultado.append({
                 "id": getattr(c, 'id', None),
                 "titulo": getattr(c, 'titulo', 'Reunión B2B'),
+                "proposito_reunion": getattr(c, 'proposito_reunion', ''),
+                "propuesta_valor": getattr(c, 'mensaje_propuesta', ''),
+                "fecha": fecha_formateada,
                 "fecha_hora": fecha_formateada,
                 "lugar": getattr(c, 'lugar', 'Por definir'),
                 "dia_id": getattr(c, 'dia_id', 'day-1'),
-                # ¡Aquí está la magia convertida a texto legible!
-                "hora_inicio": segundos_a_hora(getattr(c, 'hora_inicio', 32400)),
-                "hora_fin": segundos_a_hora(getattr(c, 'hora_fin', 36000)),
+                "hora_inicio": formato_hora(getattr(c, 'hora_inicio', None)),
+                "hora_fin": formato_hora(getattr(c, 'hora_fin', None)),
                 "estatus_cita": getattr(c, 'estatus', 'PENDIENTE DE RESPUESTA'),
                 "categoria": getattr(c, 'categoria', 'General'),
-                "destinatario_nombre": getattr(c, 'destinatario_nombre', 'Conexión Estratégica'),
+                "destinatario_nombre": nombre_solicitante,
+                "destinatario_iniciales": iniciales,
+                "destinatario_empresa": org.nombre if org else 'Por definir',
+                "destinatario_puesto": rol.nombre if rol else 'Representante de Negocios',
+                "destinatario_pais": solicitante.pais or '',
             })
 
         return resultado
