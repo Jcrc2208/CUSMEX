@@ -303,6 +303,69 @@ function AgendaDetail({ session, isMyRequest = false, onUpdateStatus }) {
     );
   }
 
+  if (isMyRequest) {
+    return (
+      <main className="max-w-2xl mx-auto space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-400">
+        <Button variant="ghost" size="sm" className="rounded-xl" onClick={() => navigateToAgenda()}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Volver a la agenda
+        </Button>
+
+        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <StatusBadge status={currentStatus} />
+            <span className="rounded-full bg-muted px-3 py-0.5 text-xs font-medium text-muted-foreground">
+              {session.categoria || 'Reunión B2B'}
+            </span>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5 text-primary" /> Asunto Corto
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground leading-tight">
+              {session.titulo || 'Sin título definido'}
+            </h1>
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-muted/40 border border-border/50">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                <CalendarDays className="h-3.5 w-3.5 text-primary" /> Fecha
+              </span>
+              <p className="text-xs font-semibold text-foreground">{session.fecha || 'Por definir'}</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                <Clock3 className="h-3.5 w-3.5 text-primary" /> Hora Inicio
+              </span>
+              <p className="text-xs font-semibold text-foreground">{session.hora_inicio || '--:--'}</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                <Clock3 className="h-3.5 w-3.5 text-primary" /> Hora Fin
+              </span>
+              <p className="text-xs font-semibold text-foreground">{session.hora_fin || '--:--'}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-border">
+            <Button
+              type="button"
+              className="flex-1 rounded-xl bg-primary text-primary-foreground font-semibold"
+              onClick={() => window.open(buildGoogleCalendarUrl(session), '_blank')}
+            >
+              <CalendarPlus className="h-4 w-4 mr-2" />
+              Agregar a Google Calendar
+            </Button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   const handleAccept = () => {
     setCurrentStatus('CONFIRMADA');
     setShowRejectPanel(false);
