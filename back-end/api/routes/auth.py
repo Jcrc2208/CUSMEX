@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models.orm_models import Usuario, Rol, Organizacion, PerfilNegocio
 from schemas.pydantic_schemas import LoginRequest, InitialSetupRequest
+from services.auth_service import crear_token_acceso, verificar_token_acceso
+
 
 router = APIRouter(prefix="/api/v1", tags=["Autenticación y Registro"])
 
@@ -31,7 +33,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
 
     return {
         "message": "Login exitoso",
-        "token": "token-jwt-generado-proximamente",
+        "token": crear_token_acceso(data={"sub": user.id}),
         "user": {
             "id": user.id,
             "email": user.email,
