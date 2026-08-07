@@ -37,6 +37,7 @@ export default function PlatformLayout({
   onNavigate,
   showModulesMenu = true,
   showFloatingAI = true,
+  showNotifications = true,
   availableModuleIds = null, // 👈 Se agrega esta prop para recibir filtros opcionales
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -44,6 +45,9 @@ export default function PlatformLayout({
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [seenCount, setSeenCount] = useState(() =>
+    parseInt(localStorage.getItem('notif_seen_count') || '0', 10) || 0
+  );
   const isAuthenticated = !!localStorage.getItem('auth_token');
   const modulesMenuRef = useRef(null);
   const languageMenuRef = useRef(null);
@@ -172,7 +176,8 @@ export default function PlatformLayout({
         );
         if (!response.ok) return;
         const data = await response.json();
-        setNotifications(Array.isArray(data) ? data : []);
+        const list = Array.isArray(data) ? data : [];
+        setNotifications(list);
       } catch (error) {
         console.error('Error al cargar notificaciones:', error);
       }
@@ -208,6 +213,12 @@ export default function PlatformLayout({
   const pendingCount = notifications.filter(
     (n) => (n.estatus_cita || '').toUpperCase() === 'PENDIENTE DE RESPUESTA'
   ).length;
+
+  const markNotificationsSeen = () => {
+    const count = pendingCount;
+    localStorage.setItem('notif_seen_count', String(count));
+    setSeenCount(count);
+  };
 
   return (
     <div className="cusmex-page-wrapper">
@@ -297,7 +308,8 @@ export default function PlatformLayout({
           </div>
 
           <div className="navbar-right-actions">
-            <div className="language-menu" ref={notificationsRef}>
+            {showNotifications && isAuthenticated && (
+              <div className="language-menu" ref={notificationsRef}>
               <Button
                 type="button"
                 variant="ghost"
@@ -308,11 +320,12 @@ export default function PlatformLayout({
                 aria-haspopup="menu"
                 onClick={() => {
                   setIsLanguageOpen(false);
+                  markNotificationsSeen();
                   setIsNotificationsOpen((open) => !open);
                 }}
               >
                 <Bell className="h-4 w-4" />
-                {pendingCount > 0 && (
+                {pendingCount > 0 && pendingCount > seenCount && (
                   <span className="notification-badge">{pendingCount}</span>
                 )}
               </Button>
@@ -340,6 +353,7 @@ export default function PlatformLayout({
                             : ''
                         }`}
                         onClick={() => {
+                          markNotificationsSeen();
                           setIsNotificationsOpen(false);
                           navigateToModule('agenda');
                         }}
@@ -360,6 +374,7 @@ export default function PlatformLayout({
                 </div>
               )}
             </div>
+            )}
 
             <div className="language-menu" ref={languageMenuRef}>
               <Button

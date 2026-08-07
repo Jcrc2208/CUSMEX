@@ -95,7 +95,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
         {/* ENCABEZADO Y TARJETA */}
         <div className="space-y-2">
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground leading-snug">
-            Bienvenido, {user.nombre} {user.apellido}
+            Hola, {user.nombre} {user.apellido}
           </h1>
 
           {/* TARJETA DE PERFIL INSTITUCIONAL */}
@@ -207,7 +207,7 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
                           {reunion.titulo}
                         </h4>
                         <p className="text-[11px] text-muted-foreground">
-                          {reunion.fecha_hora} · <span className="text-foreground font-medium">{reunion.lugar}</span>
+                          {reunion.fecha_hora} 
                         </p>
                       </div>
                       <button

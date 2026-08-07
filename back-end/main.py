@@ -4,7 +4,7 @@ os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, relationship
-from sqlalchemy import Column, String, Text, Boolean, Enum, ForeignKey
+from sqlalchemy import Column, String, Text, Boolean, Enum, ForeignKey, DateTime
 from pydantic import BaseModel, EmailStr, Field
 import bcrypt
 import uuid
@@ -12,7 +12,7 @@ from groq import Groq
 from faster_whisper import WhisperModel
 from typing import Optional, List
 from database import get_db, engine, Base, SessionLocal
-from datetime import date, time
+from datetime import date, time, datetime
 
 
 
@@ -78,6 +78,7 @@ class CitaB2B(Base):
     hora_inicio = Column(String(50), nullable=False)
     hora_fin = Column(String(50), nullable=False)
     estatus = Column(Enum('PENDIENTE DE RESPUESTA', 'CONFIRMADA', 'RECHAZADA', 'CANCELADA'), default='PENDIENTE DE RESPUESTA')
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 app = FastAPI(title="CUSMEX API - Nexusv2")
 
@@ -657,7 +658,7 @@ def obtener_proximas_reuniones(usuario_id: str = None, db: Session = Depends(get
             .join(Organizacion, Usuario.organizacion_id == Organizacion.id)
             .outerjoin(Rol, Usuario.rol_id == Rol.id)
             .filter(CitaB2B.destinatario_id == usuario_id)
-            .order_by(CitaB2B.fecha.asc(), CitaB2B.hora_inicio.asc())
+            .order_by(CitaB2B.created_at.desc())
         )
 
         filas = query.limit(5).all()
