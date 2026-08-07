@@ -646,13 +646,11 @@ def obtener_estadisticas_globales(db: Session = Depends(get_db)):
 def obtener_proximas_reuniones(usuario_id: str = None, db: Session = Depends(get_db)):
     try:
         print(f"--- CONSULTANDO PROXIMAS REUNIONES PARA: {usuario_id} ---")
-        
-        query = db.query(CitaB2B)
-        
-        if usuario_id:
-            query = query.filter(
-                (CitaB2B.solicitante_id == usuario_id) | (CitaB2B.destinatario_id == usuario_id)
-            )
+
+        if not usuario_id or not str(usuario_id).strip():
+            return []
+
+        query = db.query(CitaB2B).filter(CitaB2B.destinatario_id == usuario_id)
             
         citas = query.limit(5).all()
 

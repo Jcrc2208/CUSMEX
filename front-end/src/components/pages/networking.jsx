@@ -426,7 +426,7 @@ const handleSubmitB2BRequest = async (e) => {
           {/* PESTAÑA 1: SUGERENCIAS POR IA */}
           {activeTab === 'ai' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-in fade-in-0 duration-300">
-              {NETWORKING_PROFILES.map((profile) => renderProfileCard(profile))}
+              {NETWORKING_PROFILES.filter((profile) => profile.id !== (localStorage.getItem('usuario_id') || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')).map((profile) => renderProfileCard(profile))}
             </div>
           )}
 
@@ -692,7 +692,7 @@ const handleSubmitB2BRequest = async (e) => {
                     value={b2bFormData.tema_interes}
                     onChange={(e) => setB2bFormData({ ...b2bFormData, tema_interes: e.target.value })}
                   >
-                    <option value="">Selecciona un tema de interés o comité...</option>
+                    <option value="">Selecciona un tema de interés</option>
                     <option value="Comité de Comercio Exterior">Comité de Comercio Exterior</option>
                     <option value="Comité de Innovación y Tecnología">Comité de Innovación y Tecnología</option>
                     <option value="Comité de Logística y Cadena de Suministro">Comité de Logística y Cadena de Suministro</option>

@@ -576,7 +576,7 @@ const handleConfirmTermsAndFinish = async () => {
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Anterior
             </Button>
-
+2
             <Button
               type="button"
               size="sm"

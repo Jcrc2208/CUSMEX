@@ -62,21 +62,13 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
   useEffect(() => {
     async function fetchReuniones() {
       try {
-        const response = await fetch('/api/v1/reuniones/proximas');
+        const response = await fetch(`/api/v1/reuniones/proximas?usuario_id=${localStorage.getItem('usuario_id') || ''}`);
         if (response.ok) {
           const data = await response.json();
-          // Si la base de datos tiene citas, las usa; si viene vacío, muestra el respaldo de diseño
           if (data && data.length > 0) {
             setReuniones(data);
           } else {
-            setReuniones([
-              {
-                id: 'r1',
-                titulo: 'Mesa Técnica: Cadena de Suministro y Nearshoring',
-                fecha_hora: 'Hoy · 11:30 - 12:30 AM',
-                lugar: 'Sala Pacífico',
-              },
-            ]);
+            setReuniones([]);
           }
         }
       } catch (error) {
@@ -258,20 +250,10 @@ export default function Inicio({ language, onLanguageChange, isDarkMode, onToggl
               <div className="space-y-2.5">
                 <div className="p-3 rounded-lg border border-border bg-muted/20 flex flex-col gap-2 active:bg-muted/50 transition-colors">
                   <div className="space-y-0.5">
-                    <h4 className="font-bold text-xs sm:text-sm text-foreground leading-snug">
-                      Match por IA y Citas B2B
-                    </h4>
                     <p className="text-[11px] text-muted-foreground">
                       Encuentra perfiles alineados y agenda reuniones con potenciales socios comerciales.
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => navigateToModule('networking')}
-                    className="w-full text-center px-3 py-1.5 text-[11px] rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground font-semibold transition-colors"
-                  >
-                    Abrir Networking
-                  </button>
                 </div>
               </div>
             </CardContent>
