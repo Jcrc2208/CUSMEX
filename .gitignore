@@ -16,4 +16,5 @@ __pycache__/
 *.sqlite3
 
 # Variables de entorno / secretos
-.env
+.envnul.css
+__pycache__/

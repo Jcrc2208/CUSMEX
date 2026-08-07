@@ -121,28 +121,10 @@ function SessionCard({ session, onOpen }) {
 
 function AgendaList({
   sessions = [],
-  days = [],
-  activeDayId,
-  onDayChange,
   onOpenSession,
 }) {
 
   const safeSessions = Array.isArray(sessions) ? sessions : [];
-  const safeDays = Array.isArray(days) ? days : [];
-
-  const filteredSessions = useMemo(() => {
-    return safeSessions.filter((session) => session.dia_id === activeDayId);
-  }, [activeDayId, safeSessions]);
-
-  const grouped = useMemo(() => {
-    const groups = {};
-    filteredSessions.forEach((session) => {
-      const time = session.hora_inicio || 'Por definir';
-      if (!groups[time]) groups[time] = [];
-      groups[time].push(session);
-    });
-    return Object.entries(groups);
-  }, [filteredSessions]);
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
@@ -154,52 +136,22 @@ function AgendaList({
         </div>
       </header>
 
-      {/* SELECTOR DE DÍAS */}
-      <div className="flex items-center">
-        <div className="inline-flex w-full sm:w-auto rounded-lg bg-muted p-1 text-muted-foreground" role="tablist">
-          {safeDays.map((day) => {
-            const isActive = activeDayId === day.id;
-            return (
-              <button
-                key={day.id}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                className={`flex-1 sm:flex-none rounded-md px-4 py-1.5 text-xs font-medium transition-all ${
-                  isActive
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'hover:text-foreground'
-                }`}
-                onClick={() => onDayChange?.(day.id)}
-              >
-                {day.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       <div className="space-y-6 pt-2">
-        {grouped.length === 0 && (
+        {safeSessions.length === 0 && (
           <div className="py-12 text-center text-sm text-muted-foreground">
             Utiliza Match para crear conexiones estratégicas y gestionar reuniones con otros usuarios.
           </div>
         )}
-        
-        {grouped.map(([time, sessionsList]) => (
-          <section key={time} className="grid grid-cols-1 gap-4 md:grid-cols-[80px_1fr]">
-            <div className="text-sm font-semibold text-muted-foreground md:pt-2">{time}</div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {sessionsList.map((session) => (
-                <SessionCard
-                  key={session.id}
-                  session={session}
-                  onOpen={onOpenSession}
-                />
-              ))}
-            </div>
-          </section>
-        ))}
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {safeSessions.map((session) => (
+            <SessionCard
+              key={session.id}
+              session={session}
+              onOpen={onOpenSession}
+            />
+          ))}
+        </div>
       </div>
     </main>
   );
@@ -495,15 +447,10 @@ export default function Agenda({
 }) {
 
 
-  // 1. Estados para guardar las sesiones y los días reales desde tu API
+  // 1. Estados para guardar las sesiones reales desde tu API
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  // 1. Inicializamos los días con el formato exacto que espera el backend ("day-1")
-  const [days, setDays] = useState([
-    { id: 'day-1', label: 'Día 1' },
-    { id: 'day-2', label: 'Día 2' }
-  ]);
-  
+
 
 
 
@@ -528,10 +475,6 @@ export default function Agenda({
 
     fetchReuniones();
   }, []);
-
-  // 2. Blindamos el ID activo con el guion correspondiente
-  const activeDayId = days[0]?.id || 'day-1';
-  const [currentDayId, setCurrentDayId] = useState(activeDayId);
 
   const selectedSession = useMemo(
     () => sessions.find((s) => String(s.id) === String(sessionId)),
@@ -586,9 +529,6 @@ export default function Agenda({
       ) : (
         <AgendaList
           sessions={sessions}
-          days={days}
-          activeDayId={currentDayId}
-          onDayChange={setCurrentDayId}
           onOpenSession={handleOpenSession}
         />
       )}

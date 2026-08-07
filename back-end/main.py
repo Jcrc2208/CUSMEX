@@ -657,6 +657,7 @@ def obtener_proximas_reuniones(usuario_id: str = None, db: Session = Depends(get
             .join(Organizacion, Usuario.organizacion_id == Organizacion.id)
             .outerjoin(Rol, Usuario.rol_id == Rol.id)
             .filter(CitaB2B.destinatario_id == usuario_id)
+            .order_by(CitaB2B.fecha.asc(), CitaB2B.hora_inicio.asc())
         )
 
         filas = query.limit(5).all()
