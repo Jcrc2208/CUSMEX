@@ -200,6 +200,54 @@ html.dark {
   font-weight: 700;
 }
 
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-menu-panel {
+  width: min(300px, 82vw);
+}
+
+.notification-empty {
+  padding: 12px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.notification-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.notification-item-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notification-item-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
 .navbar-links {
   display: flex;
   align-items: center;

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Bell,
   ChevronDown,
   Menu,
   Moon,
@@ -41,9 +42,13 @@ export default function PlatformLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isModulesOpen, setIsModulesOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const isAuthenticated = !!localStorage.getItem('auth_token');
   const modulesMenuRef = useRef(null);
   const languageMenuRef = useRef(null);
+  const notificationsRef = useRef(null);
+  const usuarioId = localStorage.getItem('usuario_id');
   const t = COPY[language] ?? COPY.es;
   const userRole = localStorage.getItem('user_role')?.toLowerCase() || '';
   const isAdmin = userRole === 'admin' || userRole === 'administrador';
@@ -132,12 +137,19 @@ export default function PlatformLayout({
       ) {
         setIsLanguageOpen(false);
       }
+      if (
+        notificationsRef.current &&
+        !notificationsRef.current.contains(target)
+      ) {
+        setIsNotificationsOpen(false);
+      }
     }
 
     function handleEscape(event) {
       if (event.key === 'Escape') {
         setIsModulesOpen(false);
         setIsLanguageOpen(false);
+        setIsNotificationsOpen(false);
         setIsMobileMenuOpen(false);
       }
     }
@@ -149,6 +161,27 @@ export default function PlatformLayout({
       document.removeEventListener('keydown', handleEscape);
     };
   }, []);
+
+  useEffect(() => {
+    if (!usuarioId) return;
+
+    async function fetchNotificaciones() {
+      try {
+        const response = await fetch(
+          `/api/v1/reuniones/proximas?usuario_id=${usuarioId}`
+        );
+        if (!response.ok) return;
+        const data = await response.json();
+        setNotifications(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Error al cargar notificaciones:', error);
+      }
+    }
+
+    fetchNotificaciones();
+    const interval = setInterval(fetchNotificaciones, 20000);
+    return () => clearInterval(interval);
+  }, [usuarioId]);
 
   function handleLogout() {
     localStorage.removeItem('auth_token');
@@ -171,6 +204,10 @@ export default function PlatformLayout({
     onLanguageChange(code);
     setIsLanguageOpen(false);
   }
+
+  const pendingCount = notifications.filter(
+    (n) => (n.estatus_cita || '').toUpperCase() === 'PENDIENTE DE RESPUESTA'
+  ).length;
 
   return (
     <div className="cusmex-page-wrapper">
@@ -199,6 +236,7 @@ export default function PlatformLayout({
                   aria-haspopup="menu"
                   onClick={() => {
                     setIsLanguageOpen(false);
+                    setIsNotificationsOpen(false);
                     setIsModulesOpen((open) => !open);
                   }}
                 >
@@ -259,6 +297,70 @@ export default function PlatformLayout({
           </div>
 
           <div className="navbar-right-actions">
+            <div className="language-menu" ref={notificationsRef}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="theme-toggle-btn rounded-full relative"
+                aria-label="Notificaciones"
+                aria-expanded={isNotificationsOpen}
+                aria-haspopup="menu"
+                onClick={() => {
+                  setIsLanguageOpen(false);
+                  setIsNotificationsOpen((open) => !open);
+                }}
+              >
+                <Bell className="h-4 w-4" />
+                {pendingCount > 0 && (
+                  <span className="notification-badge">{pendingCount}</span>
+                )}
+              </Button>
+
+              {isNotificationsOpen && (
+                <div
+                  className="language-menu-panel notification-menu-panel animate-scale-in"
+                  role="menu"
+                >
+                  <p className="modules-menu-label">Notificaciones</p>
+                  {notifications.length === 0 ? (
+                    <p className="notification-empty">
+                      No tienes invitaciones B2B pendientes.
+                    </p>
+                  ) : (
+                    notifications.slice(0, 8).map((notif) => (
+                      <button
+                        key={notif.id}
+                        type="button"
+                        role="menuitem"
+                        className={`modules-menu-item ${
+                          (notif.estatus_cita || '').toUpperCase() ===
+                          'PENDIENTE DE RESPUESTA'
+                            ? 'is-active'
+                            : ''
+                        }`}
+                        onClick={() => {
+                          setIsNotificationsOpen(false);
+                          navigateToModule('agenda');
+                        }}
+                      >
+                        <div className="notification-item">
+                          <span className="notification-item-title">
+                            {notif.titulo || 'Solicitud de reunión B2B'}
+                          </span>
+                          <span className="notification-item-sub">
+                            {notif.destinatario_nombre || 'Usuario'} ·{' '}
+                            {notif.hora_inicio || '--:--'} –{' '}
+                            {notif.hora_fin || '--:--'}
+                          </span>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="language-menu" ref={languageMenuRef}>
               <Button
                 type="button"
@@ -269,6 +371,7 @@ export default function PlatformLayout({
                 aria-haspopup="menu"
                 onClick={() => {
                   setIsModulesOpen(false);
+                  setIsNotificationsOpen(false);
                   setIsLanguageOpen((open) => !open);
                 }}
               >
@@ -323,6 +426,7 @@ export default function PlatformLayout({
                 onClick={() => {
                   setIsModulesOpen(false);
                   setIsLanguageOpen(false);
+                  setIsNotificationsOpen(false);
                   setIsMobileMenuOpen((open) => !open);
                 }}
               >
